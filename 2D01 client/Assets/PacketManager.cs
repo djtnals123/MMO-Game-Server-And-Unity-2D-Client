@@ -43,6 +43,9 @@ public class PacketManager : MonoBehaviour
                 case "LOGIN_SUCCESS":
                     UnityEngine.SceneManagement.SceneManager.LoadScene("SampleScene");
                     break;
+                case "INIT_NEWPLAYER":
+
+                    break;
                 case "GET_INVENTORY_SUCCESS":
                     List<RectTransform> list = new List<RectTransform>();
                     GameObject Slot = Resources.Load("Slot") as GameObject;

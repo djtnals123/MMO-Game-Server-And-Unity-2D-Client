@@ -16,7 +16,6 @@ namespace _2d01_server
             try
             {
                 Transport.ConnectDB();
-
                 while (true)
                 {
                     Transport.StartServer();
