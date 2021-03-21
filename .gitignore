@@ -103,3 +103,5 @@ $RECYCLE.BIN/
 2D01 client/Library/
 2D01 client/Logs/
 2D01 client/obj/
+.vs/
+2D01 client/Temp/UnityLockfile

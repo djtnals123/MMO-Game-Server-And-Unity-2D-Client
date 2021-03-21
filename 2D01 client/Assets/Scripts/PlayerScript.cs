@@ -83,9 +83,8 @@ public class PlayerScript : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     void DestroyRPC() => Destroy(gameObject);
 
-    public void Hit()
+    public void Hit() //오류 수정예정
     {
-        /*
         string[] messageSplit = PacketManager.SendPacket("HPCHANGE|" + NicNameText.text + "|-10").Split('|');
         int maxhp = Convert.ToInt32(messageSplit[1]);
         int hp = Convert.ToInt32(messageSplit[2]);
@@ -93,8 +92,7 @@ public class PlayerScript : MonoBehaviourPunCallbacks, IPunObservable
         if (HealthImage.fillAmount <= 0)
         {
             PV.RPC("DestroyRPC", RpcTarget.AllBuffered);
-        }*/
-
+        }
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {

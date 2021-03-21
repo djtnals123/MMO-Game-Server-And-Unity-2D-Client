@@ -30,3 +30,67 @@ C:\Users\User\source\repos\2d01 server\2d01 server\obj\Debug\2d01 server.csproj.
 C:\Users\User\source\repos\2d01 server\2d01 server\obj\Debug\2d01 server.csproj.CopyComplete
 C:\Users\User\source\repos\2d01 server\2d01 server\obj\Debug\2d01 server.exe
 C:\Users\User\source\repos\2d01 server\2d01 server\obj\Debug\2d01 server.pdb
+D:\github\2d01 server\2d01 server\obj\Debug\2d01 server.csprojAssemblyReference.cache
+D:\github\2d01 server\2d01 server\obj\Debug\2d01 server.csproj.CoreCompileInputs.cache
+D:\github\2d01 server\2d01 server\obj\Debug\2d01 server.exe
+D:\github\2d01 server\2d01 server\obj\Debug\2d01 server.pdb
+D:\github\2d01 server\2d01 server\bin\Debug\2d01 server.exe.config
+D:\github\2d01 server\2d01 server\bin\Debug\2d01 server.exe
+D:\github\2d01 server\2d01 server\bin\Debug\2d01 server.pdb
+D:\github\2d01 server\2d01 server\bin\Debug\BouncyCastle.Crypto.dll
+D:\github\2d01 server\2d01 server\bin\Debug\Google.Protobuf.dll
+D:\github\2d01 server\2d01 server\bin\Debug\K4os.Compression.LZ4.dll
+D:\github\2d01 server\2d01 server\bin\Debug\K4os.Compression.LZ4.Streams.dll
+D:\github\2d01 server\2d01 server\bin\Debug\K4os.Hash.xxHash.dll
+D:\github\2d01 server\2d01 server\bin\Debug\MySql.Data.dll
+D:\github\2d01 server\2d01 server\bin\Debug\Renci.SshNet.dll
+D:\github\2d01 server\2d01 server\bin\Debug\System.Buffers.dll
+D:\github\2d01 server\2d01 server\bin\Debug\System.Memory.dll
+D:\github\2d01 server\2d01 server\bin\Debug\System.Numerics.Vectors.dll
+D:\github\2d01 server\2d01 server\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+D:\github\2d01 server\2d01 server\bin\Debug\Ubiety.Dns.Core.dll
+D:\github\2d01 server\2d01 server\bin\Debug\Zstandard.Net.dll
+D:\github\2d01 server\2d01 server\bin\Debug\Google.Protobuf.pdb
+D:\github\2d01 server\2d01 server\bin\Debug\Google.Protobuf.xml
+D:\github\2d01 server\2d01 server\bin\Debug\K4os.Compression.LZ4.xml
+D:\github\2d01 server\2d01 server\bin\Debug\K4os.Compression.LZ4.Streams.xml
+D:\github\2d01 server\2d01 server\bin\Debug\K4os.Hash.xxHash.xml
+D:\github\2d01 server\2d01 server\bin\Debug\MySql.Data.xml
+D:\github\2d01 server\2d01 server\bin\Debug\Renci.SshNet.xml
+D:\github\2d01 server\2d01 server\bin\Debug\System.Buffers.xml
+D:\github\2d01 server\2d01 server\bin\Debug\System.Memory.xml
+D:\github\2d01 server\2d01 server\bin\Debug\System.Numerics.Vectors.xml
+D:\github\2d01 server\2d01 server\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+D:\github\2d01 server\2d01 server\obj\Debug\2d01 server.csproj.CopyComplete
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\2d01 server.exe.config
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\2d01 server.exe
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\2d01 server.pdb
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\BouncyCastle.Crypto.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\Google.Protobuf.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\K4os.Compression.LZ4.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\K4os.Compression.LZ4.Streams.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\K4os.Hash.xxHash.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\MySql.Data.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\Renci.SshNet.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\System.Buffers.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\System.Memory.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\System.Numerics.Vectors.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\Ubiety.Dns.Core.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\Zstandard.Net.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\Google.Protobuf.pdb
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\Google.Protobuf.xml
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\K4os.Compression.LZ4.xml
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\K4os.Compression.LZ4.Streams.xml
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\K4os.Hash.xxHash.xml
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\MySql.Data.xml
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\Renci.SshNet.xml
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\System.Buffers.xml
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\System.Memory.xml
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\System.Numerics.Vectors.xml
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+D:\github\2D01\2d01 server\2d01 server\obj\Debug\2d01 server.csprojAssemblyReference.cache
+D:\github\2D01\2d01 server\2d01 server\obj\Debug\2d01 server.csproj.CoreCompileInputs.cache
+D:\github\2D01\2d01 server\2d01 server\obj\Debug\2d01 server.csproj.CopyComplete
+D:\github\2D01\2d01 server\2d01 server\obj\Debug\2d01 server.exe
+D:\github\2D01\2d01 server\2d01 server\obj\Debug\2d01 server.pdb
