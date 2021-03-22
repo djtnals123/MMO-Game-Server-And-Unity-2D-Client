@@ -8,16 +8,32 @@ using UnityEngine;
 public class PacketManager : MonoBehaviour
 {
     private static UdpClient Client = new UdpClient();
+    
 
     void Start()
     {
+        InvokeRepeating("ReceivePacket", 0f, 0.1f);
+        InvokeRepeating("ObjectSynchronization", 0f, 0.1f);
         DontDestroyOnLoad(gameObject);
+    }
+
+    private void ObjectSynchronization()
+    {
+        GameObject player = GameObject.Find("Player(Clone)");
+        Debug.Log(string.Join("|", "ObjectSynchronization|s|0|-0.0003528051|-0.4914245|-0.4425813|0|0|0".Split('|')).Split('|')[1]);
+        if (player != null)
+        {
+            Rigidbody2D rd = player.GetComponent<Rigidbody2D>();
+            string message = "ObjectSynchronization|" + InitObject.playerNicname + '|' + rd.velocity.x + '|' + rd.velocity.y + '|' +
+                rd.transform.position.x + '|' + rd.transform.position.y + '|' + rd.transform.rotation.x + '|' + rd.transform.rotation.y + '|' + rd.angularVelocity;
+     //       Debug.Log(string.Join("|", message.Split('|')));
+            SendPacket(message);
+        }
     }
 
     private void Update()
     {
         //  Debug.Log("pc");
-        ReceivePacket();
     }
 
     public static string SendPacket(string message)
@@ -28,10 +44,8 @@ public class PacketManager : MonoBehaviour
         return null;
     }
 
-    public static void ReceivePacket()
+    public void ReceivePacket()
     {
-
-
         if(Client.Available != 0)
         {
             IPEndPoint epRemote = new IPEndPoint(IPAddress.Any, 0); // 데이터 수신
@@ -40,11 +54,25 @@ public class PacketManager : MonoBehaviour
             string[] responseSplit = response.Split('|');
             switch (responseSplit[0])
             {
+                case "ObjectSynchronization":
+                    GameObject player = GameObject.Find("Player " + response[1]);
+           //         Debug.Log(string.Join("|", responseSplit));
+                    Debug.Log(response[1] + "11111111111" + string.Join("|", responseSplit));
+                    if (player != null)
+                    {
+                        Debug.Log("check");
+                        Rigidbody2D rd = GameObject.Find("Player " + response[1]).GetComponent<Rigidbody2D>();
+                        rd.velocity = new Vector3(Convert.ToSingle(response[2]), Convert.ToSingle(response[3]));
+                        rd.transform.position = new Vector3(Convert.ToSingle(response[4]), Convert.ToSingle(response[5]));
+                        rd.transform.rotation = Quaternion.Euler(Convert.ToSingle(response[6]), Convert.ToSingle(response[7]), 0f);
+                        rd.angularVelocity = Convert.ToSingle(response[8]);
+                    }
+                    break;
                 case "LOGIN_SUCCESS":
                     UnityEngine.SceneManagement.SceneManager.LoadScene("SampleScene");
                     break;
-                case "INIT_NEWPLAYER":
-
+                case "INIT_PLAYERS":
+                    InitObject.InitPlayer(responseSplit);
                     break;
                 case "GET_INVENTORY_SUCCESS":
                     List<RectTransform> list = new List<RectTransform>();
@@ -70,6 +98,11 @@ public class PacketManager : MonoBehaviour
                     break;
             }
         }
+    }
+
+    public static void InitPlayers()
+    {
+        PacketManager.SendPacket("INIT_PLAYERS|" + InitObject.playerNicname);
     }
 
     public static void Login(string id, string pass)

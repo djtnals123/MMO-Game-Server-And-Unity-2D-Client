@@ -24,12 +24,22 @@ namespace _2d01_server
 
 
         public static void StartServer()
-            => PacketHandler(PacketParsing(ReceivePacket()));
+        {
+            try
+            {
+                string[] splitMessage = PacketParsing(ReceivePacket());
+                PacketHandler(splitMessage);
+            }
+            catch (SocketException e)
+            {
+                Console.WriteLine("Socket Error. {0} {1}", e.ErrorCode, e.Message);
+            }
+        }
 
         private static byte[] ReceivePacket()
         {
             byte[] dgram = srv.Receive(ref remoteEP); // 데이터 수신
-            Console.WriteLine("[Receive] {0} 로부터 {1} 바이트 수신", remoteEP.ToString(), dgram.Length);
+            Console.WriteLine("[Receive] {0} 로부터 {1} 바이트 수신 {2}", remoteEP.ToString(), dgram.Length, dgram[0]);
             return dgram;
         }
 
@@ -48,9 +58,24 @@ namespace _2d01_server
 
             switch (dgramSplit[0])
             {
+                case "ObjectSynchronization":
+                    excepts = new List<string>();
+                    excepts.Add(dgramSplit[1]);
+                    message = string.Join("|", dgramSplit);
+                    routing = (int)Routing.Multicast;
+                    break;
                 case "PLAYER_MOVEMENT":
 
                     message = null;
+                    break;
+                case "INIT_PLAYERS":
+                    message = "INIT_PLAYERS";
+                    foreach (ClientInfo client in ClientInfo.GetClientList()) {
+                        if (client.GetPlayer() != dgramSplit[1]) {
+                            message += "|" + client.GetPlayer();
+                        }
+                    }
+                    routing = (int)Routing.Unicast;
                     break;
                 case "LOGIN":
                     sql = "SELECT * FROM account WHERE id = '" + dgramSplit[1] + "' AND password = '" + dgramSplit[2] + "'";
@@ -63,7 +88,7 @@ namespace _2d01_server
 
                         excepts = new List<string>();
                         excepts.Add(dgramSplit[1]);
-                        message = "INIT_NEWPLAYER|" + dgramSplit[1];
+                        message = "INIT_PLAYERS|" + dgramSplit[1];
                         routing = (int)Routing.Multicast;
                     }
                     else message = "LOGIN_FAILURE";
