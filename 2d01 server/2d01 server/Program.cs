@@ -15,11 +15,7 @@ namespace _2d01_server
         {
             try
             {
-                Transport.ConnectDB();
-                while (true)
-                {
-                    Transport.StartServer();
-                }
+                Transport.StartServer();
             }
             catch (Exception ex)
             {
@@ -27,6 +23,11 @@ namespace _2d01_server
                 Console.WriteLine(ex.ToString());
             }
             
+        }
+
+        ~Program()
+        {
+            Transport.Close();
         }
     }
 }

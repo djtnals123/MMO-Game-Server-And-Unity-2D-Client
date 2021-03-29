@@ -1,0 +1,16 @@
+C:\Users\User\source\repos\Packet\Packet\bin\Debug\Packet.dll
+C:\Users\User\source\repos\Packet\Packet\bin\Debug\Packet.pdb
+C:\Users\User\source\repos\Packet\Packet\obj\Debug\Packet.csprojAssemblyReference.cache
+C:\Users\User\source\repos\Packet\Packet\obj\Debug\Packet.csproj.CoreCompileInputs.cache
+C:\Users\User\source\repos\Packet\Packet\obj\Debug\Packet.dll
+C:\Users\User\source\repos\Packet\Packet\obj\Debug\Packet.pdb
+C:\Users\User\source\repos\Packet\Packet\bin\Debug\ZeroFormatter.dll
+C:\Users\User\source\repos\Packet\Packet\bin\Debug\ZeroFormatter.Interfaces.dll
+C:\Users\User\source\repos\Packet\Packet\obj\Debug\Packet.csproj.CopyComplete
+D:\github\2D01\2D01 client\Assets\Plugins\Packet.dll
+D:\github\2D01\2D01 client\Assets\Plugins\Packet.pdb
+D:\github\2D01\Packet\Packet\obj\Debug\Packet.csprojAssemblyReference.cache
+D:\github\2D01\Packet\Packet\obj\Debug\Packet.csproj.CoreCompileInputs.cache
+D:\github\2D01\Packet\Packet\obj\Debug\Packet.csproj.CopyComplete
+D:\github\2D01\Packet\Packet\obj\Debug\Packet.dll
+D:\github\2D01\Packet\Packet\obj\Debug\Packet.pdb

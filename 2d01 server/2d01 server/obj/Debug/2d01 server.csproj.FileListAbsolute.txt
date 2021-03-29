@@ -94,3 +94,7 @@ D:\github\2D01\2d01 server\2d01 server\obj\Debug\2d01 server.csproj.CoreCompileI
 D:\github\2D01\2d01 server\2d01 server\obj\Debug\2d01 server.csproj.CopyComplete
 D:\github\2D01\2d01 server\2d01 server\obj\Debug\2d01 server.exe
 D:\github\2D01\2d01 server\2d01 server\obj\Debug\2d01 server.pdb
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\Packet.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\ZeroFormatter.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\ZeroFormatter.Interfaces.dll
+D:\github\2D01\2d01 server\2d01 server\bin\Debug\Packet.pdb
