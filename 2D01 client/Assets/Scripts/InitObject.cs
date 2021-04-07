@@ -8,32 +8,37 @@ public class InitObject : MonoBehaviour
     public static string playerNicname = null;
     void Start()
     {
-        GameObject playerPrefab = Resources.Load("Player") as GameObject;
+        GameObject playerPrefab = Resources.Load("Prefabs/Player") as GameObject;
         GameObject Player = MonoBehaviour.Instantiate(playerPrefab) as GameObject;
         Player.GetComponent<PlayerScript>().ItsMe();
         Player.GetComponent<PlayerScript>().NicNameText.text = playerNicname;
         PacketManager.RequestPlayerList();
     }
 
-    public static void InitPlayers(List<string> players)
+    public static void InitPlayers(List<string> players, List<List<int>> equips)
     {
-        foreach (string p in players)
+        GameObject playerPrefab = Resources.Load("Prefabs/Player") as GameObject;
+        for (int i = 0; i < players.Count; i++)
         {
-            Debug.Log("ips " + p);
-            GameObject playerPrefab = Resources.Load("Player") as GameObject;
-            GameObject Player = MonoBehaviour.Instantiate(playerPrefab) as GameObject;
-            Player.name = "Player " + p;
-            Player.GetComponent<PlayerScript>().NicNameText.text = p;
+            GameObject playerObject = MonoBehaviour.Instantiate(playerPrefab) as GameObject;
+            PlayerScript player = playerObject.GetComponent<PlayerScript>();
+            player.name = "Player " + players[i];
+            player.GetComponent<PlayerScript>().NicNameText.text = players[i];
+            player.PutOnEquipment(equips[i]);
         }
+
+        // add other info sync
     }
 
-    public static void InitPlayer(string player)
+    public static void InitPlayer(string playerName, List<int> equips)
     {
-        Debug.Log("ip " + player);
-        GameObject playerPrefab = Resources.Load("Player") as GameObject;
-        GameObject Player = MonoBehaviour.Instantiate(playerPrefab) as GameObject;
-        Player.name = "Player " + player;
-        Player.GetComponent<PlayerScript>().NicNameText.text = player;
+        Debug.Log("ip " + playerName);
+        GameObject playerPrefab = Resources.Load("Prefabs/Player") as GameObject;
+        GameObject playerObject = MonoBehaviour.Instantiate(playerPrefab) as GameObject;
+        PlayerScript player = playerObject.GetComponent<PlayerScript>();
+        player.name = "Player " + playerName;
+        player.GetComponent<PlayerScript>().NicNameText.text = playerName;
+        player.PutOnEquipment(equips);
     }
 
     // Update is called once per frame

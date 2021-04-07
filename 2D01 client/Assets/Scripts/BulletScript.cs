@@ -32,9 +32,17 @@ public class BulletScript : MonoBehaviour
 
     public void SetDir(int dir) => this.dir = dir;
 
-    public void IsMine(bool isMine) => this.isMine = isMine;
+    public bool IsMine
+    {
+        get
+        {
+            return isMine;
+        }
+        set
+        {
+            isMine = value;
+        }
+    }
 
     public void setOwner(string owner) => this.owner = owner;
-
-    void DestroyRPC() => Destroy(gameObject);
 }
