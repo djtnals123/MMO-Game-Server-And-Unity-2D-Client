@@ -26,9 +26,12 @@ CREATE TABLE `account` (
   `account` int NOT NULL,
   `id` varchar(24) NOT NULL,
   `password` varchar(36) NOT NULL,
-  `maxhp` int NOT NULL DEFAULT '1000',
+  `max_hp` int NOT NULL DEFAULT '1000',
   `hp` int NOT NULL DEFAULT '1000',
-  `max_inventory` int NOT NULL,
+  `max_equ` int NOT NULL,
+  `max_use` int NOT NULL,
+  `max_etc` int NOT NULL,
+  `max_enh` int NOT NULL,
   PRIMARY KEY (`account`),
   UNIQUE KEY `account_number_UNIQUE` (`account`),
   UNIQUE KEY `id_UNIQUE` (`id`)
@@ -41,8 +44,30 @@ CREATE TABLE `account` (
 
 LOCK TABLES `account` WRITE;
 /*!40000 ALTER TABLE `account` DISABLE KEYS */;
-INSERT INTO `account` VALUES (1,'a','a',1111,1091,100),(2,'d','d',1111,620,100),(3,'s','s',1111,300,100);
+INSERT INTO `account` VALUES (1,'a','a',1111,511,100,100,100,100),(2,'d','d',1111,681,100,100,100,100),(3,'s','s',1111,401,100,100,100,100);
 /*!40000 ALTER TABLE `account` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `equipment`
+--
+
+DROP TABLE IF EXISTS `equipment`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `equipment` (
+  `equipment_number` int NOT NULL,
+  PRIMARY KEY (`equipment_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `equipment`
+--
+
+LOCK TABLES `equipment` WRITE;
+/*!40000 ALTER TABLE `equipment` DISABLE KEYS */;
+/*!40000 ALTER TABLE `equipment` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -54,10 +79,12 @@ DROP TABLE IF EXISTS `inventories`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `inventories` (
   `account` int NOT NULL,
+  `type` int NOT NULL,
   `slot` int NOT NULL,
   `item` int DEFAULT NULL,
   `count` int DEFAULT NULL,
-  PRIMARY KEY (`account`,`slot`)
+  `equipment_number` int DEFAULT NULL,
+  PRIMARY KEY (`account`,`type`,`slot`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -67,8 +94,34 @@ CREATE TABLE `inventories` (
 
 LOCK TABLES `inventories` WRITE;
 /*!40000 ALTER TABLE `inventories` DISABLE KEYS */;
-INSERT INTO `inventories` VALUES (1,1,1,1),(1,2,2,1);
+INSERT INTO `inventories` VALUES (1,0,1,2,1,4),(1,0,2,1,1,1),(1,0,3,1,1,5),(1,0,4,2,1,2);
 /*!40000 ALTER TABLE `inventories` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `wearing_equipment`
+--
+
+DROP TABLE IF EXISTS `wearing_equipment`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `wearing_equipment` (
+  `account` int NOT NULL,
+  `slot` int NOT NULL,
+  `equipment_number` int NOT NULL,
+  `item` int NOT NULL,
+  PRIMARY KEY (`account`,`slot`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='wearing_equipment';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `wearing_equipment`
+--
+
+LOCK TABLES `wearing_equipment` WRITE;
+/*!40000 ALTER TABLE `wearing_equipment` DISABLE KEYS */;
+INSERT INTO `wearing_equipment` VALUES (1,0,3,1);
+/*!40000 ALTER TABLE `wearing_equipment` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -80,4 +133,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-03-21  9:00:22
+-- Dump completed on 2021-04-07 15:34:16
