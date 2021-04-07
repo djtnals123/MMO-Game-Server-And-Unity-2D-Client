@@ -16,14 +16,28 @@ namespace _2d01_server
         private IPEndPoint remoteEP;
         private string player;
         private int connectionState;
+        private int account;
 
-        public ClientInfo(IPEndPoint remoteEP, string player)
+        public ClientInfo(IPEndPoint remoteEP, string player, int account)
         {
             this.remoteEP = remoteEP;
             this.player = player;
+            this.account = account;
             connectionState = 5;
         }
 
+
+        public int Account
+        {
+            get
+            {
+                return account;
+            }
+            set
+            {
+                account = value;
+            }
+        }
         public static List<ClientInfo> ClientList
         {
             get

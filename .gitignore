@@ -105,3 +105,5 @@ $RECYCLE.BIN/
 2D01 client/obj/
 .vs/
 2D01 client/Temp/
+2d01 server/packages/
+Packet/packages/
