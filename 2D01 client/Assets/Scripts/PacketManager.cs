@@ -5,36 +5,65 @@ using System.Net.Sockets;
 using UnityEngine;
 using ClientPacket;
 using ZeroFormatter;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 public class PacketManager : MonoBehaviour
 {
-    private static UdpClient Client = new UdpClient();
+    private UdpClient Client = new UdpClient();
+    ConcurrentQueue<byte[]> DgramQueue = new ConcurrentQueue<byte[]>();
 
+    private static PacketManager _instance = null;
+    public static PacketManager Instance { 
+        get
+        {
+            return _instance; 
+        } 
+        private set
+        {
+            _instance = value;
+        }
+    }
 
     void Start()
     {
-        //     InvokeRepeating("ReceivePacket", 0f, 0.01f);
-        DontDestroyOnLoad(gameObject);
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            Client.Connect("127.0.0.1", 7777);
+            Task.Run(ReceivePacket);
+        }
+        else Destroy(this);
     }
     private void Update()
     {
-        ReceivePacket();
+        PacketHandler();
     }
 
-    public static void SendPacket(ClientPacket.Packet clientPacket)
+    public void SendPacket(ClientPacket.Packet clientPacket)
     {
         var serialize = ZeroFormatterSerializer.Serialize<ClientPacket.Packet>(clientPacket);
-        Client.Send(serialize, serialize.Length, "127.0.0.1", 7777); // 데이터 송신
+        Client.Send(serialize, serialize.Length); // 데이터 송신
     }
 
-    public void ReceivePacket()
+    private void ReceivePacket()
     {
-        if (Client.Available != 0)
+        while(true)
         {
-            IPEndPoint epRemote = new IPEndPoint(IPAddress.Any, 0); // 데이터 수신
-            byte[] responsePacket = Client.Receive(ref epRemote);
-            ServerPacket.Packet deserialize = ZeroFormatterSerializer.Deserialize<ServerPacket.Packet>(responsePacket);
+            var responsePacket = Client.ReceiveAsync();
+            DgramQueue.Enqueue(responsePacket.Result.Buffer);
+        }
+    }
 
+    public void PacketHandler()
+    {
+        byte[] dgram;
+        while (DgramQueue.TryDequeue(out dgram))
+        {
+            ServerPacket.Packet deserialize = ZeroFormatterSerializer.Deserialize<ServerPacket.Packet>(dgram);
+
+            Debug.Log(deserialize.packetType.ToString("g"));
             switch (deserialize.packetType)
             {
                 case ServerPacket.PacketType.ObjectSynchronization:
@@ -51,18 +80,23 @@ public class PacketManager : MonoBehaviour
                     player.KeyDownSpace = true;
                     break;
                 case ServerPacket.PacketType.LoginSuccess:
-                    UnityEngine.SceneManagement.SceneManager.LoadScene("SampleScene");
+                    ServerPacket.LoginSuccess loginSuccess = (ServerPacket.LoginSuccess)deserialize;
+                    InitObject.SpawnMap(new Vector2(loginSuccess.PositionX, loginSuccess.PositionY));
+                    InitObject.NextPosition = new Vector2(loginSuccess.PositionX, loginSuccess.PositionY);
+                    LoadingSceneManager.LoadScene("Map_" + loginSuccess.Map.ToString());
+             //       UnityEngine.SceneManagement.SceneManager.LoadScene(loginSuccess.Map);
                     break;
                 case ServerPacket.PacketType.InitPlayer:
                     ServerPacket.InitPlayer initPlayer = (ServerPacket.InitPlayer)deserialize;
-                    InitObject.InitPlayer(initPlayer.Player, initPlayer.Equips);
+                    InitObject.InitPlayer(initPlayer.Player, initPlayer.Equips, initPlayer.PositionX, initPlayer.PositionY, initPlayer.FlipX);
                     break;
                 case ServerPacket.PacketType.InitPlayers:
                     ServerPacket.InitPlayers initPlayers = (ServerPacket.InitPlayers)deserialize;
-                    InitObject.InitPlayers(initPlayers.Players, initPlayers.Equips);
+                    InitObject.InitPlayers(initPlayers.Players, initPlayers.Equips, initPlayers.PositionX, initPlayers.PositionY, initPlayers.VelocityX, initPlayers.VelocityY, initPlayers.FlipX);
                     break;
                 case ServerPacket.PacketType.PlayerSetting:
                     ServerPacket.PlayerSetting playersetting = (ServerPacket.PlayerSetting)deserialize;
+
                     Inventory.SetInventories(playersetting.Item, playersetting.Type, playersetting.Count, playersetting.Slot, playersetting.MaxEquipmentSlot, playersetting.MaxUseableSlot, playersetting.MaxEtcSlot, playersetting.MaxEnhancementSlot);
                     Equipment.SetEquipment(playersetting.Equip);
                     player = GameObject.Find("Player(Clone)").GetComponent<PlayerScript>();
@@ -121,8 +155,16 @@ public class PacketManager : MonoBehaviour
                     ServerPacket.TakeOffPlayer takeOffPlayer = (ServerPacket.TakeOffPlayer)deserialize;
                     player = GameObject.Find("Player " + takeOffPlayer.Player).GetComponent<PlayerScript>();
                     player.TakeOffEquipment(takeOffPlayer.SubType);
+                    break;
+                case ServerPacket.PacketType.WarpMap:
+                    ServerPacket.WarpMap warpMap = (ServerPacket.WarpMap)deserialize;
+                    InitObject.WarpMap(warpMap.Portal);
+                    LoadingSceneManager.LoadScene("Map_" + warpMap.Map.ToString());
 
-
+                    break;
+                case ServerPacket.PacketType.WarpMapOtherPlayer:
+                    ServerPacket.WarpMapOtherPlayer warpMapOtherPlayer = (ServerPacket.WarpMapOtherPlayer)deserialize;
+                    InitObject.InitPlayer(warpMapOtherPlayer.Player, warpMapOtherPlayer.Equips, warpMapOtherPlayer.Portal, warpMapOtherPlayer.FlipX);
                     break;
                 default:
                     break;
@@ -130,24 +172,24 @@ public class PacketManager : MonoBehaviour
         }
     }
 
-    public static void ConnectionAck() =>
+    public void ConnectionAck() =>
         SendPacket(new ClientPacket.ConnectionAck());
 
-    public static void Login(string id, string pass) =>
+    public void Login(string id, string pass) =>
         SendPacket(new ClientPacket.Login { Id = id, Pass = pass });
 
-    public static void PlayerSetting(string id) =>
+    public void PlayerSetting(string id) =>
         SendPacket(new ClientPacket.PlayerSetting { Id = id });
-    public static void AttackPlayer(string id) =>
+    public void AttackPlayer(string id) =>
         SendPacket(new ClientPacket.AttackPlayer { Id = id });
 
-    public static void RequestPlayerList() =>
+    public void RequestPlayerList() =>
         SendPacket(new ClientPacket.RequestPlayerList() { Id = InitObject.playerNicname });
 
-    public static void HpSynchronization(int hp) =>
+    public void HpSynchronization(int hp) =>
         SendPacket(new ClientPacket.HpSynchronization { Hp = (short)hp });
 
-    public static void ObjectSynchronization(string name, float posX, float posY, float velX, float velY, float rotation, float angularVel, bool flipX) =>
+    public void ObjectSynchronization(string name, float posX, float posY, float velX, float velY, float rotation, float angularVel, bool flipX, bool mapCheck) =>
         SendPacket(new ClientPacket.ObjectSynchronization
         {
             Name = name,
@@ -157,11 +199,12 @@ public class PacketManager : MonoBehaviour
             VelocityY = velY,
             Rotation = rotation,
             AngularVelocity = angularVel,
-            FlipX = flipX
+            FlipX = flipX,
+            MapCheck = mapCheck
         });
 
 
-    public static void ChangeItemSlot(sbyte tab, short slot1, short slot2) =>
+    public void ChangeItemSlot(sbyte tab, short slot1, short slot2) =>
         SendPacket(new ClientPacket.ChangeItemSlot
         {
             Type = tab,
@@ -169,17 +212,20 @@ public class PacketManager : MonoBehaviour
             Slot2 = slot2
         });
 
-    public static void UseItem(int tab, int slot) =>
+    public void UseItem(int tab, int slot) =>
         SendPacket(new ClientPacket.UseItem { Type = (sbyte)tab, Slot = (sbyte)slot });
 
-    public static void Disconnected() =>
+    public void Disconnected() =>
         SendPacket(new ClientPacket.Disconnected());
 
-    public static void EnableSpace(bool enable) =>
+    public void EnableSpace(bool enable) =>
         SendPacket(new ClientPacket.EnableSpace { Enable = enable });
 
-    public static void TakeOffEquipment(int equipSlot, int inventorySlot) =>
+    public void TakeOffEquipment(int equipSlot, int inventorySlot) =>
         SendPacket(new ClientPacket.TakeOffEquipment { SubType = (sbyte)equipSlot, InventorySlot = (short)inventorySlot });
+
+    public void WarpMap(int portal) => 
+        SendPacket(new ClientPacket.WarpMap { Portal = portal, FlipX = InitObject.Player.GetComponent<SpriteRenderer>().flipX });
 
     ~PacketManager()
     {

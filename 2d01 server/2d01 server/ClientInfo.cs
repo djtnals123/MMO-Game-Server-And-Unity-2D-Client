@@ -8,120 +8,61 @@ using System.Threading.Tasks;
 
 namespace _2d01_server
 {
-
-
     class ClientInfo
     {
-        private static List<ClientInfo> clientList = new List<ClientInfo>();
-        private IPEndPoint remoteEP;
-        private string player;
-        private int connectionState;
-        private int account;
+        public IPEndPoint RemoteEP { get; set; }
+        public string Player { get; set; }
+        public int ConnectionState { get; set; }
+        public int Account { get; set; }
+        private Map _map;
+        public ObjectInfo ObjectInfo { get; set; }
+        public bool MapCheck { get; private set; }
 
-        public ClientInfo(IPEndPoint remoteEP, string player, int account)
+        public ClientInfo(IPEndPoint remoteEP, string player, int account, Map map, ObjectInfo objectInfo)
         {
-            this.remoteEP = remoteEP;
-            this.player = player;
-            this.account = account;
-            connectionState = 5;
+            RemoteEP = remoteEP;
+            Player = player;
+            Account = account;
+            ConnectionState = 5;
+            _map = map;
+            ObjectInfo = objectInfo;
+            MapCheck = false;
         }
 
-
-        public int Account
+        public Map Map
         {
             get
             {
-                return account;
+                return _map;
             }
             set
             {
-                account = value;
+                MapCheck = !MapCheck;
+                _map = value;
             }
         }
-        public static List<ClientInfo> ClientList
-        {
-            get
-            {
-                return clientList;
-            }
-            set
-            {
-                clientList = value;
-            }
-        }
-        public string Player
-        {
-            get
-            {
-                return player;
-            }
-            set
-            {
-                player = value;
-            }
-        }
-        public int ConnectionState
-        {
-            get
-            {
-                return connectionState;
-            }
-            set
-            {
-                connectionState = value;
-            }
-        }
-        public IPEndPoint RemoteEP
-        {
-            get
-            {
-                return remoteEP;
-            }
-            set
-            {
-                remoteEP = value;
-            }
-        }
+    }
 
 
-        public static IPEndPoint FindClientAddress(string player)
-        {
-            foreach (ClientInfo client in clientList)
-            {
-                if (client.player == player)
-                    return client.remoteEP;
-            }
-            return null;
-        }
+    public struct ObjectInfo
+    {
+        public float PositionX { get; set; }
+        public float PositionY { get; set; }
+        public float VelocityX { get; set; }
+        public float VelocityY { get; set; }
+        public float Rotation { get; set; }
+        public float AngularVelocity { get; set; }
+        public bool FlipX { get; set; }
 
-        public static string FindPlayerName(IPEndPoint remoteEP)
+        public ObjectInfo(float positionX, float positionY, float velocityX, float velocityY, float rotation, float angularVelocity, bool flipX)
         {
-            foreach (ClientInfo client in clientList )
-            {
-                if (client.remoteEP.ToString() == remoteEP.ToString())
-                    return client.Player;
-            }
-            return null;
-        }
-
-        public static ClientInfo Find(string player)
-        {
-            foreach (ClientInfo client in clientList)
-            {
-                if (client.player == player)
-                    return client;
-            }
-            return null;
-        }
-
-        public static ClientInfo Find(IPEndPoint remoteEP)
-        {
-            foreach (ClientInfo client in clientList)
-            {
-                if (client.remoteEP.ToString() == remoteEP.ToString())
-                    return client;
-            }
-            return null;
+            PositionX = positionX;
+            PositionY = positionY;
+            VelocityX = velocityX;
+            VelocityY = velocityY;
+            Rotation = rotation;
+            AngularVelocity = angularVelocity;
+            FlipX = flipX;
         }
     }
 }

@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Cinemachine;
 using System;
+using System.Text.RegularExpressions;
+using UnityEngine.SceneManagement;
 
 public class PlayerScript : MonoBehaviour
 {
@@ -18,18 +20,12 @@ public class PlayerScript : MonoBehaviour
     private bool m_keyDownSpace = false;
 
     private bool m_isGround;
-    private Vector3 m_curPos;
+    public Vector3 CurPos { get; set; }
     private float m_curRot;
+    private bool canWarp = true;
 
-    GameObject bulletPrefab;
-
-    // Start is called before the first frame update
     void Awake()
     {
-        bulletPrefab = Resources.Load("Bullet") as GameObject;
-        //      NicNameText.text = PV.IsMine ? PhotonNetwork.NickName : PV.Owner.NickName;
-        //      NicNameText.color = PV.IsMine ? Color.green : Color.red;
-
 
     }
 
@@ -38,15 +34,20 @@ public class PlayerScript : MonoBehaviour
         m_isMine = true;
         //      NicNameText.text = PV.IsMine ? PhotonNetwork.NickName : PV.Owner.NickName;
         //      NicNameText.color = PV.IsMine ? Color.green : Color.red;
-        var CM = GameObject.Find("CM Camera").GetComponent<CinemachineVirtualCamera>();
+
+        transform.position = InitObject.NextPosition;
+
+        GameObject cameraPrefab = Resources.Load("Prefabs/Camera") as GameObject;
+        GameObject camera = Instantiate(cameraPrefab);
+        var CM = camera.transform.GetChild(1).GetComponent<CinemachineVirtualCamera>();
         CM.Follow = transform;
         CM.LookAt = transform;
 
         InvokeRepeating("Synchronization", 0f, 0.1f);
-        PacketManager.PlayerSetting(InitObject.playerNicname);
+        DontDestroyOnLoad(camera);
+        DontDestroyOnLoad(this);
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (m_isMine)
@@ -73,32 +74,54 @@ public class PlayerScript : MonoBehaviour
             else m_enableSpace = false;
             if (Input.GetKeyDown(KeyCode.UpArrow) && m_isGround)
             {
-                RB.velocity = Vector2.zero;
-                RB.AddForce(Vector2.up * 700);
+                GameObject obj = Physics2D.OverlapPoint(transform.position).gameObject;
+                if (obj.name.Contains("Portal "))
+                {
+                    if(canWarp)
+                    {
+                        canWarp = false;
+                        WarpMap(int.Parse(Regex.Replace(obj.name, @"\D", "")));
+                        Invoke("warpDelay", 1f);
+                    }
+                }
+                else
+                {
+                    RB.velocity = Vector2.zero;
+                    RB.AddForce(Vector2.up * 700);
+                }
             }
             if (Input.GetKeyDown(KeyCode.I))
             {
-                GameObject Inventory = GameObject.Find("Canvas").transform.GetChild(0).gameObject;
+                GameObject Inventory = GameObject.Find("UI").transform.GetChild(0).gameObject;
                 Inventory.SetActive(!Inventory.activeSelf);
             }
         }
-        else if ((transform.position - m_curPos).sqrMagnitude >= 100) transform.position = m_curPos;
-        else transform.position = Vector3.Lerp(transform.position, m_curPos, Time.deltaTime * 10);
+        else if ((transform.position - CurPos).sqrMagnitude >= 100) transform.position = CurPos;
+        else transform.position = Vector3.Lerp(transform.position, CurPos, Time.deltaTime * 10);
 
-        Debug.Log(transform.name + " ff");
+    }
+
+    private void warpDelay()
+    {
+        canWarp = true;
+    }
+
+    private void WarpMap(int portal)
+    {
+        PacketManager.Instance.WarpMap(portal);
     }
 
     public void Hit() //오류 수정예정
     {
         if(m_isMine)
-            PacketManager.HpSynchronization(-10);
+            PacketManager.Instance.HpSynchronization(-10);
     }
 
 
     public void SyncPlayer(string name, float positionX, float positionY, float velocityX, float velocityY, float rotation, float angularVelocity, bool flipX)
     {
-        Debug.Log(positionX+ " "  +positionY);
-        m_curPos = new Vector3(positionX, positionY);
+        Debug.Log(positionX + " " + positionY);
+        CurPos = new Vector3(positionX, positionY);
         RB.velocity = new Vector3(velocityX, velocityY);
         RB.rotation = rotation;
         RB.angularVelocity = angularVelocity;
@@ -107,12 +130,26 @@ public class PlayerScript : MonoBehaviour
 
     private void Synchronization()
     {
-        if (transform.position.x != m_curPos.x || transform.position.y != m_curPos.y || RB.rotation != m_curRot)
+        if (!LoadingSceneManager.isLoading && canWarp && transform.position.x != CurPos.x || transform.position.y != CurPos.y || RB.rotation != m_curRot)
         {
-            m_curPos = new Vector3(transform.position.x, transform.position.y);
-            m_curRot = RB.rotation;
-            PacketManager.ObjectSynchronization(InitObject.playerNicname, RB.transform.position.x, RB.transform.position.y, RB.velocity.x, RB.velocity.y, RB.rotation, RB.angularVelocity, SR.flipX);
-        }
+            if (SceneManager.GetActiveScene().name.Contains("Map_"))
+            {
+                CurPos = new Vector3(transform.position.x, transform.position.y);
+                PacketManager.Instance.ObjectSynchronization(InitObject.playerNicname, RB.transform.position.x, RB.transform.position.y, RB.velocity.x, RB.velocity.y, RB.rotation, RB.angularVelocity, SR.flipX, InitObject.MapCheck);
+
+                m_curRot = RB.rotation;
+                try
+                {
+    //                int map = int.Parse(Regex.Replace(SceneManager.GetActiveScene().name, @"\D", ""));
+
+                }
+                catch (FormatException e)
+                {
+                    Debug.Log("숫자없음 " + e.ToString());
+                }
+            }
+
+         }
     }
 
     public void TakeOffEquipment(int subType)
@@ -211,9 +248,9 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
-    ~PlayerScript()
+    private void OnApplicationQuit()
     {
         if (m_isMine)
-            PacketManager.Disconnected();
+            PacketManager.Instance.Disconnected();
     }
 }

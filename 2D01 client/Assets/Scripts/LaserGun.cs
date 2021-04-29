@@ -83,7 +83,7 @@ public class LaserGun : MonoBehaviour
             {
                 if(!(m_lineRenderer.enabled))
                 {
-                    PacketManager.EnableSpace(true);
+                    PacketManager.Instance.EnableSpace(true);
                     m_lineRenderer.enabled = true;
                 }
                 ShootLaser();
@@ -92,7 +92,7 @@ public class LaserGun : MonoBehaviour
             {
                 if(m_lineRenderer.enabled)
                 {
-                    PacketManager.EnableSpace(false);
+                    PacketManager.Instance.EnableSpace(false);
                     m_lineRenderer.enabled = false;
                 }
             }

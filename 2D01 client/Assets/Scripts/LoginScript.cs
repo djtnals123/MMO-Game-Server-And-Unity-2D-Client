@@ -21,7 +21,7 @@ public class LoginScript : MonoBehaviour
     public void Login()
     {
         InitObject.playerNicname = IDInput.text;
-        PacketManager.Login(IDInput.text, PassInput.text);
+        PacketManager.Instance.Login(IDInput.text, PassInput.text);
     }
 
     private void OnDestroy()

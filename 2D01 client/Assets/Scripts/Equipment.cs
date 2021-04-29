@@ -59,17 +59,17 @@ public class Equipment : MonoBehaviour, IPointerClickHandler
         {
             if (selectedItem.IsSelected)
             {
-                if(selectedItem.Owner == SelectedItem.OwnerType.inventory && Inventory.Tab == 0)
+                if (selectedItem.Owner == SelectedItem.OwnerType.inventory && Inventory.Tab == 0)
                 {
                     int ivItem = Inventory.EquipmentList[selectedItem.SelectedItemIndex].GetComponent<SlotScript>().Item;
                     Debug.Log(clickedObject.name);
-                    if (ivItem/10000 == subType && ivItem != 0)
-                        PacketManager.UseItem(0, selectedItem.SelectedItemIndex);
+                    if (ivItem / 10000 == subType && ivItem != 0)
+                        PacketManager.Instance.UseItem(0, selectedItem.SelectedItemIndex);
                 }
-                else if(selectedItem.Owner == SelectedItem.OwnerType.equipment)
+                else if (selectedItem.Owner == SelectedItem.OwnerType.equipment)
                 {
                     if (selectedItem.SelectedItemIndex == subType && eventData.clickCount == 2)
-                        PacketManager.TakeOffEquipment(subType, -1);
+                        PacketManager.Instance.TakeOffEquipment(subType, -1);
                 }
                 selectedItem.IsSelected = false;
             }
@@ -77,7 +77,7 @@ public class Equipment : MonoBehaviour, IPointerClickHandler
             {
                 if (clickedObject.name == "Image")
                 {
-                    selectedItem.selectedItemImage.sprite = clickedObject.GetComponent<Image>().sprite;
+                    selectedItem.SelectedItemImage.sprite = clickedObject.GetComponent<Image>().sprite;
                     selectedItem.SelectedItemIndex = subType;
                     selectedItem.IsSelected = true;
                     selectedItem.Owner = SelectedItem.OwnerType.equipment;
@@ -88,7 +88,7 @@ public class Equipment : MonoBehaviour, IPointerClickHandler
         {
             if (clickedObject.name == "Image")
             {
-                    PacketManager.TakeOffEquipment(subType, -1);
+                PacketManager.Instance.TakeOffEquipment(subType, -1);
             }
         }
 
@@ -98,9 +98,9 @@ public class Equipment : MonoBehaviour, IPointerClickHandler
 
     public static void SetEquipment(List<int> item)
     {
-        foreach(int i in item)
+        foreach (int i in item)
         {
-            if(i/10000 == 0)
+            if (i / 10000 == 0)
             {
                 weapon.Item = i;
             }

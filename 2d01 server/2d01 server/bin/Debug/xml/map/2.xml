@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Map code="2">
+	<Portal code = "1">
+		<LinkedMap code="1"/>
+		<LinkedPortal code="1"/>
+	</Portal>
+	<SpawnPoint code = "1" PosX = "0" PosY = "0"/>
+</Map>

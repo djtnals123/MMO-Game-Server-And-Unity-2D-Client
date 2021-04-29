@@ -9,12 +9,12 @@ public class SelectedItem : MonoBehaviour
 
     private int m_selectedItemIndex;
     private OwnerType m_owner;
-    public Image selectedItemImage;
+    private Image selectedItemImage;
 
    private void Awake()
     {
         selectedItemImage = transform.GetComponent<Image>();
-        selectedItemImage.gameObject.SetActive(false);
+   //     selectedItemImage.gameObject.SetActive(false);
     }
 
     void Update()

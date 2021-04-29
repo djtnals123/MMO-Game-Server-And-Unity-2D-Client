@@ -23,7 +23,7 @@ public class Inventory : MonoBehaviour, IPointerClickHandler, IPointerDownHandle
     private Image m_imgEnhancementTab;
 
     private Color m_enableColor = new Color(1f, 1f, 1f, 1f);
-    private Color m_disableColor = new Color(1f, 1f, 1f, 100/255f);
+    private Color m_disableColor = new Color(1f, 1f, 1f, 100 / 255f);
 
     [SerializeField]
     private SelectedItem selectedItem;
@@ -53,6 +53,7 @@ public class Inventory : MonoBehaviour, IPointerClickHandler, IPointerDownHandle
         m_imgEtcTab = etcTab.GetComponent<Image>();
         m_imgEnhancementTab = enhancementTab.GetComponent<Image>();
 
+        PacketManager.Instance.PlayerSetting(InitObject.playerNicname);
         EquipmentTabClick();
     }
 
@@ -105,7 +106,7 @@ public class Inventory : MonoBehaviour, IPointerClickHandler, IPointerDownHandle
         }
         for (int i = 0; i < item.Count; i++)
         {
-            switch(type[i])
+            switch (type[i])
             {
                 case 0:
                     m_equipmentList[slot[i]].GetComponent<SlotScript>().SetItem(item[i], 0);
@@ -128,7 +129,7 @@ public class Inventory : MonoBehaviour, IPointerClickHandler, IPointerDownHandle
     public static void AddItem(int type, int item, int count, int index)
     {
 
-        if(type == 0)
+        if (type == 0)
         {
             if (index == -1)
             {
@@ -175,7 +176,7 @@ public class Inventory : MonoBehaviour, IPointerClickHandler, IPointerDownHandle
 
     private void UseableTabClick()
     {
-        if(tab != 1)
+        if (tab != 1)
         {
             m_imgEquipmentTab.color = m_disableColor;
             m_imgUseableTab.color = m_enableColor;
@@ -237,7 +238,7 @@ public class Inventory : MonoBehaviour, IPointerClickHandler, IPointerDownHandle
     {
         int tmp;
         string strSlots = null;
-        switch(tab)
+        switch (tab)
         {
             case 0:
                 strSlots = "EquipmentSlots";
@@ -262,11 +263,11 @@ public class Inventory : MonoBehaviour, IPointerClickHandler, IPointerDownHandle
     public static void UseItem(int tab, int slot, int item)
     {
         int subType;
-        switch(tab)
+        switch (tab)
         {
             case 0: // Equipment
                 subType = item / 10000;
-                switch(subType)
+                switch (subType)
                 {
                     case 0: // Weapon
                         Equipment.PutOn(item, 0, slot);
@@ -282,7 +283,7 @@ public class Inventory : MonoBehaviour, IPointerClickHandler, IPointerDownHandle
     {
         GameObject clickedObject = eventData.pointerCurrentRaycast.gameObject;
 
-        if(eventData.button == PointerEventData.InputButton.Left)
+        if (eventData.button == PointerEventData.InputButton.Left)
         {
             if (selectedItem.IsSelected)
             {
@@ -302,18 +303,18 @@ public class Inventory : MonoBehaviour, IPointerClickHandler, IPointerDownHandle
                         if (selectedItem.SelectedItemIndex == selectIvIndex)
                         {
                             if (eventData.clickCount == 2)
-                                PacketManager.UseItem(0, selectIvIndex);
+                                PacketManager.Instance.UseItem(0, selectIvIndex);
                         }
-                        else PacketManager.ChangeItemSlot((sbyte)tab, (short)selectedItem.SelectedItemIndex, (short)selectIvIndex);
+                        else PacketManager.Instance.ChangeItemSlot((sbyte)tab, (short)selectedItem.SelectedItemIndex, (short)selectIvIndex);
                     }
                 }
-                else if((selectedItem.Owner == SelectedItem.OwnerType.equipment) && tab == 0 && selectIvIndex != -1)
+                else if ((selectedItem.Owner == SelectedItem.OwnerType.equipment) && tab == 0 && selectIvIndex != -1)
                 {
                     int selectItem = EquipmentList[selectIvIndex].GetComponent<SlotScript>().Item;
                     if (selectItem == 0)
-                        PacketManager.TakeOffEquipment(selectedItem.SelectedItemIndex, selectIvIndex);
+                        PacketManager.Instance.TakeOffEquipment(selectedItem.SelectedItemIndex, selectIvIndex);
                     else if ((selectItem / 10000) == selectedItem.SelectedItemIndex)
-                        PacketManager.UseItem(0, selectIvIndex);
+                        PacketManager.Instance.UseItem(0, selectIvIndex);
                 }
 
                 selectedItem.IsSelected = false;
@@ -322,21 +323,21 @@ public class Inventory : MonoBehaviour, IPointerClickHandler, IPointerDownHandle
             {
                 if (clickedObject.name == "Image")
                 {
-                    selectedItem.selectedItemImage.sprite = clickedObject.GetComponent<Image>().sprite;
+                    selectedItem.SelectedItemImage.sprite = clickedObject.GetComponent<Image>().sprite;
                     selectedItem.SelectedItemIndex = int.Parse(Regex.Replace(clickedObject.transform.parent.name, @"\D", ""));
                     selectedItem.IsSelected = true;
                     selectedItem.Owner = SelectedItem.OwnerType.inventory;
                 }
             }
         }
-        else if(eventData.button == PointerEventData.InputButton.Right)
+        else if (eventData.button == PointerEventData.InputButton.Right)
         {
-            if(clickedObject.name == "Image")
+            if (clickedObject.name == "Image")
             {
                 string slotName = clickedObject.transform.parent.name;
                 if (slotName.Contains("EquipmentSlot"))
                 {
-                    PacketManager.UseItem(0, int.Parse(Regex.Replace(slotName, @"\D", "")));
+                    PacketManager.Instance.UseItem(0, int.Parse(Regex.Replace(slotName, @"\D", "")));
                 }
             }
         }
