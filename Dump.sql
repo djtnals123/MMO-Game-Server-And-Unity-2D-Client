@@ -32,6 +32,7 @@ CREATE TABLE `account` (
   `max_use` int NOT NULL,
   `max_etc` int NOT NULL,
   `max_enh` int NOT NULL,
+  `map` int NOT NULL,
   PRIMARY KEY (`account`),
   UNIQUE KEY `account_number_UNIQUE` (`account`),
   UNIQUE KEY `id_UNIQUE` (`id`)
@@ -44,7 +45,7 @@ CREATE TABLE `account` (
 
 LOCK TABLES `account` WRITE;
 /*!40000 ALTER TABLE `account` DISABLE KEYS */;
-INSERT INTO `account` VALUES (1,'a','a',1111,511,100,100,100,100),(2,'d','d',1111,681,100,100,100,100),(3,'s','s',1111,401,100,100,100,100);
+INSERT INTO `account` VALUES (1,'a','a',1111,511,100,100,100,100,2),(2,'d','d',1111,681,100,100,100,100,1),(3,'s','s',1111,361,100,100,100,100,2);
 /*!40000 ALTER TABLE `account` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -94,7 +95,7 @@ CREATE TABLE `inventories` (
 
 LOCK TABLES `inventories` WRITE;
 /*!40000 ALTER TABLE `inventories` DISABLE KEYS */;
-INSERT INTO `inventories` VALUES (1,0,1,2,1,4),(1,0,2,1,1,1),(1,0,3,1,1,5),(1,0,4,2,1,2);
+INSERT INTO `inventories` VALUES (1,0,0,2,1,2),(1,0,1,1,1,3),(1,0,3,2,1,4),(1,0,15,1,1,1);
 /*!40000 ALTER TABLE `inventories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -120,7 +121,7 @@ CREATE TABLE `wearing_equipment` (
 
 LOCK TABLES `wearing_equipment` WRITE;
 /*!40000 ALTER TABLE `wearing_equipment` DISABLE KEYS */;
-INSERT INTO `wearing_equipment` VALUES (1,0,3,1);
+INSERT INTO `wearing_equipment` VALUES (1,0,5,1);
 /*!40000 ALTER TABLE `wearing_equipment` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -133,4 +134,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-04-07 15:34:16
+-- Dump completed on 2021-04-29 15:15:40
