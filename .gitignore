@@ -107,3 +107,8 @@ $RECYCLE.BIN/
 2D01 client/Temp/
 2d01 server/packages/
 Packet/packages/
+
+2D01 headless server/Library/
+2D01 headless server/Logs/
+2D01 headless server/obj/
+2D01 headless server/Temp/

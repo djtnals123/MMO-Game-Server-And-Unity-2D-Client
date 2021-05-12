@@ -15,17 +15,15 @@ namespace _2d01_server
         public int ConnectionState { get; set; }
         public int Account { get; set; }
         private Map _map;
-        public ObjectInfo ObjectInfo { get; set; }
         public bool MapCheck { get; private set; }
 
-        public ClientInfo(IPEndPoint remoteEP, string player, int account, Map map, ObjectInfo objectInfo)
+        public ClientInfo(IPEndPoint remoteEP, string player, int account, Map map)
         {
             RemoteEP = remoteEP;
             Player = player;
             Account = account;
             ConnectionState = 5;
             _map = map;
-            ObjectInfo = objectInfo;
             MapCheck = false;
         }
 
@@ -44,25 +42,4 @@ namespace _2d01_server
     }
 
 
-    public struct ObjectInfo
-    {
-        public float PositionX { get; set; }
-        public float PositionY { get; set; }
-        public float VelocityX { get; set; }
-        public float VelocityY { get; set; }
-        public float Rotation { get; set; }
-        public float AngularVelocity { get; set; }
-        public bool FlipX { get; set; }
-
-        public ObjectInfo(float positionX, float positionY, float velocityX, float velocityY, float rotation, float angularVelocity, bool flipX)
-        {
-            PositionX = positionX;
-            PositionY = positionY;
-            VelocityX = velocityX;
-            VelocityY = velocityY;
-            Rotation = rotation;
-            AngularVelocity = angularVelocity;
-            FlipX = flipX;
-        }
-    }
 }

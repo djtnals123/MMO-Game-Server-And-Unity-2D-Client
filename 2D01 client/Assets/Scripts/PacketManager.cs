@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 public class PacketManager : MonoBehaviour
 {
     private UdpClient Client = new UdpClient();
-    ConcurrentQueue<byte[]> DgramQueue = new ConcurrentQueue<byte[]>();
+    ConcurrentQueue<UdpReceiveResult> DgramQueue = new ConcurrentQueue<UdpReceiveResult>();
 
     private static PacketManager _instance = null;
     public static PacketManager Instance { 
@@ -25,13 +25,15 @@ public class PacketManager : MonoBehaviour
         }
     }
 
+    private readonly IPEndPoint hRemoteEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 7778);
+    private readonly IPEndPoint remoteEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 7777);
+
     void Start()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Client.Connect("127.0.0.1", 7777);
             Task.Run(ReceivePacket);
         }
         else Destroy(this);
@@ -44,130 +46,143 @@ public class PacketManager : MonoBehaviour
     public void SendPacket(ClientPacket.Packet clientPacket)
     {
         var serialize = ZeroFormatterSerializer.Serialize<ClientPacket.Packet>(clientPacket);
-        Client.Send(serialize, serialize.Length); // 데이터 송신
+        Client.Send(serialize, serialize.Length, remoteEP); // 데이터 송신
     }
+    public void SendPacket(HClientPacket.Packet clientPacket)
+    {
+        var serialize = ZeroFormatterSerializer.Serialize<HClientPacket.Packet>(clientPacket);
+        Client.Send(serialize, serialize.Length, hRemoteEP); // 데이터 송신
+    }
+
 
     private void ReceivePacket()
     {
         while(true)
         {
             var responsePacket = Client.ReceiveAsync();
-            DgramQueue.Enqueue(responsePacket.Result.Buffer);
+            DgramQueue.Enqueue(responsePacket.Result);
         }
     }
 
     public void PacketHandler()
     {
-        byte[] dgram;
-        while (DgramQueue.TryDequeue(out dgram))
+        UdpReceiveResult result;
+        while (DgramQueue.TryDequeue(out result))
         {
-            ServerPacket.Packet deserialize = ZeroFormatterSerializer.Deserialize<ServerPacket.Packet>(dgram);
-
-            Debug.Log(deserialize.packetType.ToString("g"));
-            switch (deserialize.packetType)
+            Debug.Log(result.RemoteEndPoint.Address + ":" + result.RemoteEndPoint.Port);
+            if (result.RemoteEndPoint.ToString() == "127.0.0.1:7777")
             {
-                case ServerPacket.PacketType.ObjectSynchronization:
-                    ServerPacket.ObjectSynchronization objInfo = (ServerPacket.ObjectSynchronization)deserialize;
-          //          Debug.Log(" : " + objInfo.PositionX + " " + objInfo.PositionY + "Player " + objInfo.Name);
-                    GameObject playerObject = GameObject.Find("Player " + objInfo.Name);
-                    if (playerObject != null)
-                        playerObject.GetComponent<PlayerScript>().SyncPlayer(objInfo.Name, objInfo.PositionX, objInfo.PositionY,
-                            objInfo.VelocityX, objInfo.VelocityY, objInfo.Rotation, objInfo.AngularVelocity, objInfo.FlipX);
-                    break;
-                case ServerPacket.PacketType.AttackPlayer:
-                    ServerPacket.AttackPlayer atkPlayer = (ServerPacket.AttackPlayer)deserialize;
-                    PlayerScript player = GameObject.Find("Player " + atkPlayer.Id).GetComponent<PlayerScript>();
-                    player.KeyDownSpace = true;
-                    break;
-                case ServerPacket.PacketType.LoginSuccess:
-                    ServerPacket.LoginSuccess loginSuccess = (ServerPacket.LoginSuccess)deserialize;
-                    InitObject.SpawnMap(new Vector2(loginSuccess.PositionX, loginSuccess.PositionY));
-                    InitObject.NextPosition = new Vector2(loginSuccess.PositionX, loginSuccess.PositionY);
-                    LoadingSceneManager.LoadScene("Map_" + loginSuccess.Map.ToString());
-             //       UnityEngine.SceneManagement.SceneManager.LoadScene(loginSuccess.Map);
-                    break;
-                case ServerPacket.PacketType.InitPlayer:
-                    ServerPacket.InitPlayer initPlayer = (ServerPacket.InitPlayer)deserialize;
-                    InitObject.InitPlayer(initPlayer.Player, initPlayer.Equips, initPlayer.PositionX, initPlayer.PositionY, initPlayer.FlipX);
-                    break;
-                case ServerPacket.PacketType.InitPlayers:
-                    ServerPacket.InitPlayers initPlayers = (ServerPacket.InitPlayers)deserialize;
-                    InitObject.InitPlayers(initPlayers.Players, initPlayers.Equips, initPlayers.PositionX, initPlayers.PositionY, initPlayers.VelocityX, initPlayers.VelocityY, initPlayers.FlipX);
-                    break;
-                case ServerPacket.PacketType.PlayerSetting:
-                    ServerPacket.PlayerSetting playersetting = (ServerPacket.PlayerSetting)deserialize;
+                ServerPacket.Packet deserialize = ZeroFormatterSerializer.Deserialize<ServerPacket.Packet>(result.Buffer);
+                PlayerScript player;
+                switch (deserialize.packetType)
+                {
+                    case ServerPacket.PacketType.PlayerSetting:
+                        ServerPacket.PlayerSetting playersetting = (ServerPacket.PlayerSetting)deserialize;
 
-                    Inventory.SetInventories(playersetting.Item, playersetting.Type, playersetting.Count, playersetting.Slot, playersetting.MaxEquipmentSlot, playersetting.MaxUseableSlot, playersetting.MaxEtcSlot, playersetting.MaxEnhancementSlot);
-                    Equipment.SetEquipment(playersetting.Equip);
-                    player = GameObject.Find("Player(Clone)").GetComponent<PlayerScript>();
-                    player.PutOnEquipment(playersetting.Equip);
+                        Inventory.SetInventories(playersetting.Item, playersetting.Type, playersetting.Count, playersetting.Slot, playersetting.MaxEquipmentSlot, playersetting.MaxUseableSlot, playersetting.MaxEtcSlot, playersetting.MaxEnhancementSlot);
 
-                    break;
-                case ServerPacket.PacketType.HpSynchronization:
-                    ServerPacket.HpSynchronization hpSyn = (ServerPacket.HpSynchronization)deserialize;
-                    if (hpSyn.Id == InitObject.playerNicname)
+
+                        break;
+                    case ServerPacket.PacketType.HpSynchronization:
+                        ServerPacket.HpSynchronization hpSyn = (ServerPacket.HpSynchronization)deserialize;
+                        if (hpSyn.Id == InitObject.playerNicname)
+                            player = GameObject.Find("Player(Clone)").GetComponent<PlayerScript>();
+                        else player = GameObject.Find("Player " + hpSyn.Id).GetComponent<PlayerScript>();
+                        if (player != null)
+                        {
+                            PlayerScript playerComponent = player.GetComponent<PlayerScript>();
+                            playerComponent.HealthImage.fillAmount = (float)hpSyn.Hp / hpSyn.MaxHp;
+                            if (playerComponent.HealthImage.fillAmount <= 0)
+                                Destroy(playerComponent);
+                        }
+                        break;
+                    case ServerPacket.PacketType.ConnectionCheck:
+                        ConnectionAck();
+                        break;
+                    case ServerPacket.PacketType.DisconnectedPlayer:
+                        ServerPacket.DisconnectedPlayer removePlayer = (ServerPacket.DisconnectedPlayer)deserialize;
+                        Debug.Log(removePlayer.Id);
+                        Destroy(GameObject.Find("Player " + removePlayer.Id));
+                        break;
+                    case ServerPacket.PacketType.ChangeItemSlot:
+                        ServerPacket.ChangeItemSlot changeItemSlot = (ServerPacket.ChangeItemSlot)deserialize;
+                        Inventory.SwapSlot(changeItemSlot.Type, changeItemSlot.Slot1, changeItemSlot.Slot2);
+
+                        break;
+                    case ServerPacket.PacketType.UseItem:
+                        ServerPacket.UseItem useItem = (ServerPacket.UseItem)deserialize;
+                        Inventory.UseItem(useItem.Type, useItem.Slot, useItem.Item);
+
+                        break;
+                    case ServerPacket.PacketType.PutOnPlayer:
+                        ServerPacket.PutOnPlayer putOnPlayer = (ServerPacket.PutOnPlayer)deserialize;
+                        player = GameObject.Find("Player " + putOnPlayer.Player).GetComponent<PlayerScript>();
+                        player.PutOnEquipment(putOnPlayer.Item);
+
+                        break;
+                    case ServerPacket.PacketType.TakeOffEquipment:
+                        ServerPacket.TakeOffEquipment takeOffEquipment = (ServerPacket.TakeOffEquipment)deserialize;
+                        Equipment.TakeOff(takeOffEquipment.SubType, takeOffEquipment.InventorySlot);
                         player = GameObject.Find("Player(Clone)").GetComponent<PlayerScript>();
-                    else player = GameObject.Find("Player " + hpSyn.Id).GetComponent<PlayerScript>();
-                    if (player != null)
-                    {
-                        PlayerScript playerComponent = player.GetComponent<PlayerScript>();
-                        playerComponent.HealthImage.fillAmount = (float)hpSyn.Hp / hpSyn.MaxHp;
-                        if (playerComponent.HealthImage.fillAmount <= 0)
-                            Destroy(playerComponent);
-                    }
-                    break;
-                case ServerPacket.PacketType.ConnectionCheck:
-                    ConnectionAck();
-                    break;
-                case ServerPacket.PacketType.DisconnectedPlayer:
-                    ServerPacket.DisconnectedPlayer removePlayer = (ServerPacket.DisconnectedPlayer)deserialize;
-                    Debug.Log(removePlayer.Id);
-                    Destroy(GameObject.Find("Player " + removePlayer.Id));
-                    break;
-                case ServerPacket.PacketType.ChangeItemSlot:
-                    ServerPacket.ChangeItemSlot changeItemSlot = (ServerPacket.ChangeItemSlot)deserialize;
-                    Inventory.SwapSlot(changeItemSlot.Type, changeItemSlot.Slot1, changeItemSlot.Slot2);
+                        player.TakeOffEquipment(takeOffEquipment.SubType);
+                        break;
+                    case ServerPacket.PacketType.TakeOffPlayer:
+                        ServerPacket.TakeOffPlayer takeOffPlayer = (ServerPacket.TakeOffPlayer)deserialize;
+                        player = GameObject.Find("Player " + takeOffPlayer.Player).GetComponent<PlayerScript>();
+                        player.TakeOffEquipment(takeOffPlayer.SubType);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if(result.RemoteEndPoint.ToString() == "127.0.0.1:7778")
+            {
+                HServerPacket.Packet deserialize = ZeroFormatterSerializer.Deserialize<HServerPacket.Packet>(result.Buffer);
 
-                    break;
-                case ServerPacket.PacketType.UseItem:
-                    ServerPacket.UseItem useItem = (ServerPacket.UseItem)deserialize;
-                    Inventory.UseItem(useItem.Type, useItem.Slot, useItem.Item);
+                switch (deserialize.packetType)
+                {
+                case HServerPacket.PacketType.ObjectSynchronization:
+                        HServerPacket.ObjectSynchronization objInfo = (HServerPacket.ObjectSynchronization)deserialize;
+              //          Debug.Log(" : " + objInfo.PositionX + " " + objInfo.PositionY + "Player " + objInfo.Name);
+                        GameObject playerObject = GameObject.Find("Player " + objInfo.Name);
+                        if (playerObject != null)
+                            playerObject.GetComponent<PlayerScript>().SyncPlayer(objInfo.PositionX, objInfo.PositionY,
+                                objInfo.VelocityX, objInfo.VelocityY, objInfo.Rotation, objInfo.AngularVelocity, objInfo.FlipX);
+                        break;
+                    case HServerPacket.PacketType.AttackPlayer:
+                        HServerPacket.AttackPlayer atkPlayer = (HServerPacket.AttackPlayer)deserialize;
+                        PlayerScript player = GameObject.Find("Player " + atkPlayer.Id).GetComponent<PlayerScript>();
+                        player.KeyDownSpace = true;
+                        break;
+                    case HServerPacket.PacketType.EnableSpace:
+                        HServerPacket.EnableSpace enableSpace = (HServerPacket.EnableSpace)deserialize;
+                        player = GameObject.Find("Player " + enableSpace.Player).GetComponent<PlayerScript>();
+                        player.EnableSpace = enableSpace.IsEnabled;
+                        break;
+                    case HServerPacket.PacketType.LoginSuccess:
+                        HServerPacket.LoginSuccess loginSuccess = (HServerPacket.LoginSuccess)deserialize;
+                        InitObject.InitMinePlayer(new Vector2(loginSuccess.PositionX, loginSuccess.PositionY), loginSuccess.Equips);
+                        LoadingSceneManager.LoadScene("Map_" + loginSuccess.Map.ToString());
+                        break;
+                    case HServerPacket.PacketType.InitPlayer:
+                        HServerPacket.InitPlayer initPlayer = (HServerPacket.InitPlayer)deserialize;
+                        if (initPlayer.MapCheck == InitObject.MapCheck)
+                            InitObject.InitPlayer(initPlayer.Player, initPlayer.Equips, new Vector2(initPlayer.PositionX, initPlayer.PositionY), Vector2.zero, initPlayer.FlipX);
+                        break;
 
-                    break;
-                case ServerPacket.PacketType.PutOnPlayer:
-                    ServerPacket.PutOnPlayer putOnPlayer = (ServerPacket.PutOnPlayer)deserialize;
-                    player = GameObject.Find("Player " + putOnPlayer.Player).GetComponent<PlayerScript>();
-                    player.PutOnEquipment(putOnPlayer.Item);
+                    case HServerPacket.PacketType.InitPlayers:
+                        HServerPacket.InitPlayers initPlayers = (HServerPacket.InitPlayers)deserialize;
+                        InitObject.InitPlayers(initPlayers.Players, initPlayers.Equips, initPlayers.PositionX, initPlayers.PositionY, initPlayers.VelocityX, initPlayers.VelocityY, initPlayers.FlipX);
+                        break;
+                    case HServerPacket.PacketType.WarpMap:
+                        HServerPacket.WarpMap warpMap = (HServerPacket.WarpMap)deserialize;
+                        InitObject.WarpMap(warpMap.LinkedMap, new Vector2(warpMap.PosX, warpMap.PosY));
 
-                    break;
-                case ServerPacket.PacketType.EnableSpace:
-                    ServerPacket.EnableSpace enableSpace = (ServerPacket.EnableSpace)deserialize;
-                    player = GameObject.Find("Player " + enableSpace.Player).GetComponent<PlayerScript>();
-                    player.EnableSpace = enableSpace.Enable;
-                    break;
-                case ServerPacket.PacketType.TakeOffEquipment:
-                    ServerPacket.TakeOffEquipment takeOffEquipment = (ServerPacket.TakeOffEquipment)deserialize;
-                    Equipment.TakeOff(takeOffEquipment.SubType, takeOffEquipment.InventorySlot);
-                    player = GameObject.Find("Player(Clone)").GetComponent<PlayerScript>();
-                    player.TakeOffEquipment(takeOffEquipment.SubType);
-                    break;
-                case ServerPacket.PacketType.TakeOffPlayer:
-                    ServerPacket.TakeOffPlayer takeOffPlayer = (ServerPacket.TakeOffPlayer)deserialize;
-                    player = GameObject.Find("Player " + takeOffPlayer.Player).GetComponent<PlayerScript>();
-                    player.TakeOffEquipment(takeOffPlayer.SubType);
-                    break;
-                case ServerPacket.PacketType.WarpMap:
-                    ServerPacket.WarpMap warpMap = (ServerPacket.WarpMap)deserialize;
-                    InitObject.WarpMap(warpMap.Portal);
-                    LoadingSceneManager.LoadScene("Map_" + warpMap.Map.ToString());
+                        break;
+                    default:
+                        break;
+                }
 
-                    break;
-                case ServerPacket.PacketType.WarpMapOtherPlayer:
-                    ServerPacket.WarpMapOtherPlayer warpMapOtherPlayer = (ServerPacket.WarpMapOtherPlayer)deserialize;
-                    InitObject.InitPlayer(warpMapOtherPlayer.Player, warpMapOtherPlayer.Equips, warpMapOtherPlayer.Portal, warpMapOtherPlayer.FlipX);
-                    break;
-                default:
-                    break;
             }
         }
     }
@@ -180,19 +195,16 @@ public class PacketManager : MonoBehaviour
 
     public void PlayerSetting(string id) =>
         SendPacket(new ClientPacket.PlayerSetting { Id = id });
-    public void AttackPlayer(string id) =>
-        SendPacket(new ClientPacket.AttackPlayer { Id = id });
+    public void AttackPlayer() =>
+        SendPacket(new HClientPacket.AttackPlayer());
 
-    public void RequestPlayerList() =>
-        SendPacket(new ClientPacket.RequestPlayerList() { Id = InitObject.playerNicname });
 
     public void HpSynchronization(int hp) =>
         SendPacket(new ClientPacket.HpSynchronization { Hp = (short)hp });
 
     public void ObjectSynchronization(string name, float posX, float posY, float velX, float velY, float rotation, float angularVel, bool flipX, bool mapCheck) =>
-        SendPacket(new ClientPacket.ObjectSynchronization
+        SendPacket(new HClientPacket.ObjectSynchronization
         {
-            Name = name,
             PositionX = posX,
             PositionY = posY,
             VelocityX = velX,
@@ -218,14 +230,14 @@ public class PacketManager : MonoBehaviour
     public void Disconnected() =>
         SendPacket(new ClientPacket.Disconnected());
 
-    public void EnableSpace(bool enable) =>
-        SendPacket(new ClientPacket.EnableSpace { Enable = enable });
+    public void EnableSpace(bool isEnabled) =>
+        SendPacket(new HClientPacket.EnableSpace { IsEnabled = isEnabled });
 
     public void TakeOffEquipment(int equipSlot, int inventorySlot) =>
         SendPacket(new ClientPacket.TakeOffEquipment { SubType = (sbyte)equipSlot, InventorySlot = (short)inventorySlot });
 
     public void WarpMap(int portal) => 
-        SendPacket(new ClientPacket.WarpMap { Portal = portal, FlipX = InitObject.Player.GetComponent<SpriteRenderer>().flipX });
+        SendPacket(new HClientPacket.WarpMap { Portal = portal });
 
     ~PacketManager()
     {

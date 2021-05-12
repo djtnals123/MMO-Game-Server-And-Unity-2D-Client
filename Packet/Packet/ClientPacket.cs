@@ -9,11 +9,11 @@ namespace ClientPacket
 {
     public enum PacketType
     {
-        Login, RequestPlayerList, ObjectSynchronization, PlayerSetting, AttackPlayer, HpSynchronization, ConnectionAck, Disconnected, ChangeItemSlot, 
-        UseItem, EnableSpace, TakeOffEquipment, WarpMap
+        Login, ObjectSynchronization, PlayerSetting, HpSynchronization, ConnectionAck, Disconnected, ChangeItemSlot, 
+        UseItem, TakeOffEquipment, HWarpMap
     }
-    [Union(typeof(Login), typeof(RequestPlayerList), typeof(ObjectSynchronization), typeof(PlayerSetting), typeof(AttackPlayer), typeof(HpSynchronization), 
-        typeof(ConnectionAck), typeof(Disconnected), typeof(ChangeItemSlot), typeof(UseItem), typeof(EnableSpace), typeof(TakeOffEquipment), typeof(WarpMap) )]
+    [Union(typeof(Login), typeof(ObjectSynchronization), typeof(PlayerSetting), typeof(HpSynchronization), 
+        typeof(ConnectionAck), typeof(Disconnected), typeof(ChangeItemSlot), typeof(UseItem), typeof(TakeOffEquipment), typeof(HWarpMap))]
     public abstract class Packet
     {
         [UnionKey] public abstract PacketType packetType { get; }
@@ -33,19 +33,6 @@ namespace ClientPacket
 
         [Index(0)] public virtual string Id { get; set; }
         [Index(1)] public virtual string Pass { get; set; }
-    }
-
-    [ZeroFormattable]
-    public class RequestPlayerList : Packet
-    {
-        public override PacketType packetType
-        {
-            get
-            {
-                return PacketType.RequestPlayerList;
-            }
-        }
-        [Index(0)] public virtual string Id { get; set; }
     }
 
     [ZeroFormattable]
@@ -81,18 +68,6 @@ namespace ClientPacket
         [Index(0)] public virtual string Id { get; set; }
     }
 
-    [ZeroFormattable]
-    public class AttackPlayer : Packet
-    {
-        public override PacketType packetType
-        {
-            get
-            {
-                return PacketType.AttackPlayer;
-            }
-        }
-        [Index(0)] public virtual string Id { get; set; }
-    }
 
     [ZeroFormattable]
     public class HpSynchronization : Packet
@@ -159,18 +134,6 @@ namespace ClientPacket
         [Index(1)] public virtual short Slot { get; set; }
     }
     [ZeroFormattable]
-    public class EnableSpace : Packet
-    {
-        public override PacketType packetType
-        {
-            get
-            {
-                return PacketType.EnableSpace;
-            }
-        }
-        [Index(0)] public virtual bool Enable { get; set; }
-    }
-    [ZeroFormattable]
     public class TakeOffEquipment : Packet
     {
         public override PacketType packetType
@@ -183,19 +146,19 @@ namespace ClientPacket
         [Index(0)] public virtual sbyte SubType { get; set; }
         [Index(1)] public virtual short InventorySlot { get; set; }
     }
+
     [ZeroFormattable]
-    public class WarpMap : Packet
+    public class HWarpMap : Packet
     {
         public override PacketType packetType
         {
             get
             {
-                return PacketType.WarpMap;
+                return PacketType.HWarpMap;
             }
         }
-        [Index(0)] public virtual int Portal { get; set; }
-        [Index(1)] public virtual bool FlipX { get; set; }
+        [Index(0)] public virtual string RemoteEP { get; set; }
+        [Index(1)] public virtual int Map { get; set; }
     }
-
 }
 

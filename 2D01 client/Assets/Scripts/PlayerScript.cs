@@ -24,6 +24,8 @@ public class PlayerScript : MonoBehaviour
     private float m_curRot;
     private bool canWarp = true;
 
+    public GameObject UI { get; set; }
+
     void Awake()
     {
 
@@ -35,17 +37,30 @@ public class PlayerScript : MonoBehaviour
         //      NicNameText.text = PV.IsMine ? PhotonNetwork.NickName : PV.Owner.NickName;
         //      NicNameText.color = PV.IsMine ? Color.green : Color.red;
 
-        transform.position = InitObject.NextPosition;
 
-        GameObject cameraPrefab = Resources.Load("Prefabs/Camera") as GameObject;
-        GameObject camera = Instantiate(cameraPrefab);
-        var CM = camera.transform.GetChild(1).GetComponent<CinemachineVirtualCamera>();
+        GameObject uiPrefab = Resources.Load("Prefabs/UI/UI") as GameObject;
+        GameObject ui = Instantiate(uiPrefab);
+        DontDestroyOnLoad(ui);
+        ui.name = "UI";
+
+
+        var CM = GameObject.Find("CM Camera").GetComponent<CinemachineVirtualCamera>();
         CM.Follow = transform;
         CM.LookAt = transform;
 
         InvokeRepeating("Synchronization", 0f, 0.1f);
-        DontDestroyOnLoad(camera);
         DontDestroyOnLoad(this);
+
+        UI = ui;
+    }
+
+    public bool IsLoading
+    {
+        set
+        {
+            gameObject.SetActive(!value);
+            UI.SetActive(!value);
+        }
     }
 
     void Update()
@@ -108,6 +123,10 @@ public class PlayerScript : MonoBehaviour
 
     private void WarpMap(int portal)
     {
+        GameObject[] objs = SceneManager.GetSceneByName("Remote").GetRootGameObjects();
+        for (int i=1; i < objs.Length; i++ )
+            Destroy(objs[i]);
+        LoadingSceneManager.IsLoading = true;
         PacketManager.Instance.WarpMap(portal);
     }
 
@@ -118,7 +137,7 @@ public class PlayerScript : MonoBehaviour
     }
 
 
-    public void SyncPlayer(string name, float positionX, float positionY, float velocityX, float velocityY, float rotation, float angularVelocity, bool flipX)
+    public void SyncPlayer(float positionX, float positionY, float velocityX, float velocityY, float rotation, float angularVelocity, bool flipX)
     {
         Debug.Log(positionX + " " + positionY);
         CurPos = new Vector3(positionX, positionY);
@@ -130,7 +149,7 @@ public class PlayerScript : MonoBehaviour
 
     private void Synchronization()
     {
-        if (!LoadingSceneManager.isLoading && canWarp && transform.position.x != CurPos.x || transform.position.y != CurPos.y || RB.rotation != m_curRot)
+        if (canWarp && transform.position.x != CurPos.x || transform.position.y != CurPos.y || RB.rotation != m_curRot)
         {
             if (SceneManager.GetActiveScene().name.Contains("Map_"))
             {

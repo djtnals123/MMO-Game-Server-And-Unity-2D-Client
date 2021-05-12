@@ -6,7 +6,8 @@ using UnityEngine.SceneManagement;
 public class LoadingSceneManager : MonoBehaviour
 {
     public static string nextScene;
-    public static bool isLoading = false;
+    public static Object lockObject = new Object();
+    public static bool IsLoading { get; set; } = true;
 
     [SerializeField]
     Image progressBar;
@@ -16,14 +17,17 @@ public class LoadingSceneManager : MonoBehaviour
     public static void LoadScene(string sceneName)
     {
         nextScene = sceneName;
-        isLoading = true;
-        SceneManager.LoadScene("Loading");
+        InitObject.Player.IsLoading = true;
+        IsLoading = true;
+        SceneManager.LoadScene("Loading", LoadSceneMode.Additive);
     }
 
     IEnumerator LoadScene()
     {
         yield return null;
-        AsyncOperation op = SceneManager.LoadSceneAsync(nextScene);
+        SceneManager.SetActiveScene(SceneManager.GetSceneByName("Main"));
+        SceneManager.UnloadSceneAsync(MainScene.CurrentSceneName);
+        AsyncOperation op = SceneManager.LoadSceneAsync(nextScene, LoadSceneMode.Additive);
         op.allowSceneActivation = false;
         float timer = 0.0f;
 
@@ -41,11 +45,29 @@ public class LoadingSceneManager : MonoBehaviour
                 progressBar.fillAmount = Mathf.Lerp(progressBar.fillAmount, 1f, timer);
                 if (progressBar.fillAmount == 1.0f)
                 {
-                    op.allowSceneActivation = true;
-                    isLoading = false;
+                    lock(lockObject)
+                    {
+                        op.allowSceneActivation = true;
+                    }
+
+                    SceneManager.UnloadSceneAsync("Loading");
                     yield break;
                 }
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        InitObject.Player.IsLoading = false;
+        MainScene.CurrentSceneName = nextScene;
+        SceneManager.SetActiveScene(SceneManager.GetSceneByName(nextScene));
+        IsLoading = false;
+        if(InitObject.DisabledRemoteObjectList != null)
+        {
+            foreach (var obj in InitObject.DisabledRemoteObjectList)
+                obj.SetActive(true);
+            InitObject.DisabledRemoteObjectList = null;
         }
     }
 }

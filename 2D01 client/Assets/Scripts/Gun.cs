@@ -47,7 +47,7 @@ public class Gun : MonoBehaviour
             if (m_player.IsMine)
             {
                 Bullet.IsMine = true;
-                PacketManager.Instance.AttackPlayer(InitObject.playerNicname);
+                PacketManager.Instance.AttackPlayer();
             }
             else m_player.KeyDownSpace = false;
             m_player.AN.SetTrigger("attack");

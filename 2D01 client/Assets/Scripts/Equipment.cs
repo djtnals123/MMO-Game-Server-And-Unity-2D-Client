@@ -11,9 +11,13 @@ public class Equipment : MonoBehaviour, IPointerClickHandler
     [SerializeField]
     private SelectedItem selectedItem;
 
-    private void Start()
+    private void Awake()
     {
         weapon = GameObject.Find("WeaponSlot").GetComponent<EquipmentSlot>();
+    }
+
+    private void Start()
+    {
     }
 
     public static void PutOn(int item, int subType, int inventorySlot)

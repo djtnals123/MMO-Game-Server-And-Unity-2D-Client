@@ -1,0 +1,12 @@
+D:\github\2D01\2D01 client\Assets\Plugins\netcoreapp3.1\PacketHC.deps.json
+D:\github\2D01\2D01 client\Assets\Plugins\netcoreapp3.1\PacketHC.dll
+D:\github\2D01\2D01 client\Assets\Plugins\netcoreapp3.1\PacketHC.pdb
+D:\github\2D01\PacketHC\PacketHC\obj\Debug\netcoreapp3.1\PacketHC.csprojAssemblyReference.cache
+D:\github\2D01\PacketHC\PacketHC\obj\Debug\netcoreapp3.1\PacketHC.AssemblyInfoInputs.cache
+D:\github\2D01\PacketHC\PacketHC\obj\Debug\netcoreapp3.1\PacketHC.AssemblyInfo.cs
+D:\github\2D01\PacketHC\PacketHC\obj\Debug\netcoreapp3.1\PacketHC.csproj.CoreCompileInputs.cache
+D:\github\2D01\PacketHC\PacketHC\obj\Debug\netcoreapp3.1\PacketHC.dll
+D:\github\2D01\PacketHC\PacketHC\obj\Debug\netcoreapp3.1\PacketHC.pdb
+D:\github\2D01\PacketHC\PacketHC\bin\Debug\netcoreapp3.1\PacketHC.deps.json
+D:\github\2D01\PacketHC\PacketHC\bin\Debug\netcoreapp3.1\PacketHC.dll
+D:\github\2D01\PacketHC\PacketHC\bin\Debug\netcoreapp3.1\PacketHC.pdb
