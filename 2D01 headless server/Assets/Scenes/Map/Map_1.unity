@@ -351,7 +351,7 @@ TilemapCollider2D:
   m_Material: {fileID: 6200000, guid: f24df05a495b6ab4e9c17df60dc99b2b, type: 2}
   m_IsTrigger: 0
   m_UsedByEffector: 0
-  m_UsedByComposite: 0
+  m_UsedByComposite: 1
   m_Offset: {x: 0, y: 0}
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0.00001
@@ -614,6 +614,7 @@ GameObject:
   - component: {fileID: 3273033228607944845}
   - component: {fileID: 3273033228607944834}
   - component: {fileID: 3273033228607944835}
+  - component: {fileID: 3273033228607944848}
   m_Layer: 8
   m_Name: Tilemap
   m_TagString: Ground
@@ -621,3 +622,57 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!66 &3273033228607944848
+CompositeCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3273033228607944847}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 6200000, guid: f24df05a495b6ab4e9c17df60dc99b2b, type: 2}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_GeometryType: 1
+  m_GenerationType: 0
+  m_EdgeRadius: 0
+  m_ColliderPaths:
+  - m_Collider: {fileID: 3273033228607944835}
+    m_ColliderPaths:
+    - - X: 18600000
+        Y: 1399999
+      - X: 18600000
+        Y: -8600000
+      - X: -8600000
+        Y: -8600000
+      - X: -8600000
+        Y: 1399999
+      - X: -91400000
+        Y: 1399999
+      - X: -91400000
+        Y: -11400000
+      - X: -11400000
+        Y: -11400000
+      - X: -11400000
+        Y: -21399998
+      - X: 31399998
+        Y: -21399998
+      - X: 31399998
+        Y: 1399999
+  m_CompositePaths:
+    m_Paths:
+    - - {x: 3.1399705, y: -2.1399999}
+      - {x: 3.1399705, y: 0.1399999}
+      - {x: 1.86, y: 0.1399706}
+      - {x: 1.8599706, y: -0.86}
+      - {x: -0.86, y: -0.8599706}
+      - {x: -0.86002934, y: 0.1399999}
+      - {x: -9.14, y: 0.1399706}
+      - {x: -9.139971, y: -1.14}
+      - {x: -1.14, y: -1.1400294}
+      - {x: -1.1399707, y: -2.1399999}
+  m_VertexDistance: 0.0005
+  m_OffsetDistance: 0.00005

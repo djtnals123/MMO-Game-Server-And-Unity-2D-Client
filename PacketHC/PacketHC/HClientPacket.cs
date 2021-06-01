@@ -7,9 +7,9 @@ namespace HClientPacket
 {
     public enum PacketType
     {
-        ObjectSynchronization, AttackPlayer, EnableSpace, WarpMap
+        ObjectSynchronization, AttackPlayer, EnableSpace, WarpMap, RequestObjects
     }
-    [Union(typeof(ObjectSynchronization), typeof(AttackPlayer), typeof(EnableSpace), typeof(WarpMap))]
+    [Union(typeof(ObjectSynchronization), typeof(AttackPlayer), typeof(EnableSpace), typeof(WarpMap), typeof(RequestObjects))]
     public abstract class Packet
     {
         [UnionKey] public abstract PacketType packetType { get; }
@@ -76,4 +76,17 @@ namespace HClientPacket
         }
         [Index(0)] public virtual int Portal { get; set; }
     }
+    [ZeroFormattable]
+    public class RequestObjects : Packet
+    {
+        public override PacketType packetType
+        {
+            get
+            {
+                return PacketType.RequestObjects;
+            }
+        }
+    }
+
+    
 }

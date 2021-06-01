@@ -5,58 +5,56 @@ using System.IO;
 using System.Xml;
 using UnityEngine;
 
-public class MapData : MonoBehaviour
+public class MapData
 {
-    void Start()
-    {
-        LoadXml();
-        Debug.Log(Maps[1].portal[1].linkedMap);
-        Debug.Log(Maps[1].spawnPoint[1].x);
-    }
 
     public class Map
     {
         public Dictionary<int, Portal> portal { get; set; }
         public Dictionary<int, Vector2> spawnPoint { get; set; }
+        public List<Mob> mobs { get; set; }
+
 
         public Map()
         {
             portal = new Dictionary<int, Portal>();
             spawnPoint = new Dictionary<int, Vector2>();
+            mobs = new List<Mob>();
         }
     }
 
     public static Vector2 GetRandomSpawnPoint(int mapCode)
     {
-        int spawnPointCode = new System.Random().Next(1, Maps[mapCode].spawnPoint.Count + 1);
-        return Maps[mapCode].spawnPoint[spawnPointCode];
+        int spawnPointCode = new System.Random().Next(1, GameData.Maps[mapCode].spawnPoint.Count + 1);
+        return GameData.Maps[mapCode].spawnPoint[spawnPointCode];
     }
 
 
-    public static Dictionary<int, Map> Maps { get; set; }
 
     public struct Portal
     {
-        public Vector2 position; 
+        public Vector2 position;
         public int linkedMap;
         public int linkedPortal;
-        
 
 
+
+    }
+    public struct Mob
+    {
+        public int id;
+        public int code;
+        public Vector2 position;
     }
 
 
 
-    public static void LoadXml()
-    {
-        ReadMap();
-    }
 
-    private static void ReadMap()
+    public static Dictionary<int, Map> LoadXml()
     {
-        Maps = new Dictionary<int, Map>();
+        Dictionary<int, Map> Maps = new Dictionary<int, Map>();
 
-        foreach (string file in getXmlFiles("map"))
+        foreach (string file in XmlManager.getXmlFiles("map"))
         {
             using (XmlReader rd = XmlReader.Create(file))
             {
@@ -112,6 +110,27 @@ public class MapData : MonoBehaviour
                                             else break;
                                         }
                                     }
+                                    else if (rd.Name == "Mobs")
+                                    {
+                                        while (rd.Read())
+                                        {
+                                            if (rd.IsStartElement())
+                                            {
+                                                if (rd.Name == "Mob")
+                                                {
+                                                    Vector2 spawnPoint = new Vector2(Convert.ToSingle(rd["PosX"]), Convert.ToSingle(rd["PosY"]));
+                                                    Mob mob = new Mob();
+                                                    mob.id = int.Parse(rd["id"]);
+                                                    mob.code = int.Parse(rd["code"]);
+                                                    mob.position = spawnPoint;
+
+
+                                                    Maps[mapCode].mobs.Add(mob);
+                                                }
+                                            }
+                                            else break;
+                                        }
+                                    }
                                 }
                                 else break;
                             }
@@ -121,20 +140,6 @@ public class MapData : MonoBehaviour
                 }
             }
         }
-    }
-
-    private static List<string> getXmlFiles(string forder)
-    {
-        List<string> fileNameList = new List<string>();
-        forder = Application.dataPath + "/Resources/Xml/" + forder;
-        DirectoryInfo di = new DirectoryInfo(forder);
-        foreach (FileInfo File in di.GetFiles())
-            if (File.Extension.ToLower().CompareTo(".xml") == 0)
-            {
-                fileNameList.Add(File.FullName);Debug.Log(File.FullName);
-            }
-        
-
-        return fileNameList;
+        return Maps;
     }
 }

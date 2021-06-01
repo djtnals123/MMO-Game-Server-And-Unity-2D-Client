@@ -42,7 +42,7 @@ public class Gun : MonoBehaviour
 
         if (m_player.KeyDownSpace)
         {
-            SceneManager.SetActiveScene(InitObject.SceneMap[m_player.Map]);
+            SceneManager.SetActiveScene(MapManager.Instance.Map[m_player.Map].SceneMap);
             GameObject BulletObject = MonoBehaviour.Instantiate(m_bulletPrefab, m_FirePoint.position, Quaternion.identity) as GameObject;
             var Bullet = BulletObject.GetComponent<BulletScript>();
             Bullet.SetDir(m_playerSR.flipX ? -1 : 1);

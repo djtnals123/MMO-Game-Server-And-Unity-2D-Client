@@ -7,12 +7,11 @@ namespace ServerPacket
 {
     public enum PacketType
     {
-        Login_Failure, ObjectSynchronization, PlayerSetting, Failure, HpSynchronization, ConnectionCheck,
+        Login_Failure, ObjectSynchronization, PlayerSetting, Failure, ConnectionCheck,
         DisconnectedPlayer, ChangeItemSlot, UseItem, PutOnPlayer, TakeOffEquipment, TakeOffPlayer, HInitPlayer,
         
     }
-    [Union(typeof(LoginFailure), typeof(PlayerSetting),
-        typeof(HpSynchronization), typeof(ConnectionCheck), typeof(DisconnectedPlayer), typeof(ChangeItemSlot), typeof(UseItem),
+    [Union(typeof(LoginFailure), typeof(PlayerSetting), typeof(ConnectionCheck), typeof(DisconnectedPlayer), typeof(ChangeItemSlot), typeof(UseItem),
         typeof(PutOnPlayer), typeof(TakeOffEquipment), typeof(TakeOffPlayer), typeof(HInitPlayer) 
         )]
     public abstract class Packet
@@ -46,8 +45,11 @@ namespace ServerPacket
         }
         [Index(0)] public virtual string Player { get; set; }
         [Index(1)] public virtual List<int> Equips { get; set; }
-        [Index(7)] public virtual int Map { get; set; }
-        [Index(8)] public virtual string RemoteEP { get; set; }
+        [Index(2)] public virtual int Map { get; set; }
+        [Index(3)] public virtual short HP { get; set; }
+        [Index(4)] public virtual short MaxHP { get; set; }
+
+        [Index(5)] public virtual string RemoteEP { get; set; }
     }
 
 
@@ -70,22 +72,6 @@ namespace ServerPacket
         [Index(6)] public virtual List<int> Item { get; set; }
         [Index(7)] public virtual List<short> Count { get; set; }
 
-    }
-
-
-    [ZeroFormattable]
-    public class HpSynchronization : Packet
-    {
-        public override PacketType packetType
-        {
-            get
-            {
-                return PacketType.HpSynchronization;
-            }
-        }
-        [Index(0)] public virtual string Id { get; set; }
-        [Index(1)] public virtual int MaxHp { get; set; }
-        [Index(2)] public virtual int Hp { get; set; }
     }
 
     [ZeroFormattable]

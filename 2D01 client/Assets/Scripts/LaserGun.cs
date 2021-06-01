@@ -35,7 +35,7 @@ public class LaserGun : MonoBehaviour
         if(m_curParentFlapX)
         {
             RaycastHit2D hit = Physics2D.Raycast(m_FirePoint.position, -(m_FirePoint.transform.right), m_distanceRay,
-                1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Ground"));
+                1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("Mob"));
             if (hit.collider != null)
             {
                 DrawRay(m_FirePoint.position, hit.point);
@@ -48,7 +48,7 @@ public class LaserGun : MonoBehaviour
         else
         {
             RaycastHit2D hit = Physics2D.Raycast(m_FirePoint.position, m_FirePoint.transform.right, m_distanceRay,
-                1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Ground"));
+                1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("Mob"));
             if (hit.collider != null)
             {
                 DrawRay(m_FirePoint.position, hit.point);

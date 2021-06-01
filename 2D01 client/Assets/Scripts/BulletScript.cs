@@ -21,10 +21,12 @@ public class BulletScript : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag == "Ground") Destroy(gameObject);
+        if (collision.tag == "Ground")
+        {
+            Destroy(gameObject);
+        }
         else if (collision.tag == "Player" && collision.GetComponent<PlayerScript>().NicNameText.text != owner)
         {
-            Debug.Log(collision.GetComponent<PlayerScript>().name);
             collision.GetComponent<PlayerScript>().Hit();
             Destroy(gameObject);
         }

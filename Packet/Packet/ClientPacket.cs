@@ -9,10 +9,10 @@ namespace ClientPacket
 {
     public enum PacketType
     {
-        Login, ObjectSynchronization, PlayerSetting, HpSynchronization, ConnectionAck, Disconnected, ChangeItemSlot, 
+        Login, ObjectSynchronization, PlayerSetting, HPlayerHpSynchronization, ConnectionAck, Disconnected, ChangeItemSlot, 
         UseItem, TakeOffEquipment, HWarpMap
     }
-    [Union(typeof(Login), typeof(ObjectSynchronization), typeof(PlayerSetting), typeof(HpSynchronization), 
+    [Union(typeof(Login), typeof(ObjectSynchronization), typeof(PlayerSetting), typeof(HPlayerHpSynchronization), 
         typeof(ConnectionAck), typeof(Disconnected), typeof(ChangeItemSlot), typeof(UseItem), typeof(TakeOffEquipment), typeof(HWarpMap))]
     public abstract class Packet
     {
@@ -70,16 +70,17 @@ namespace ClientPacket
 
 
     [ZeroFormattable]
-    public class HpSynchronization : Packet
+    public class HPlayerHpSynchronization : Packet
     {
         public override PacketType packetType
         {
             get
             {
-                return PacketType.HpSynchronization;
+                return PacketType.HPlayerHpSynchronization;
             }
         }
-        [Index(0)] public virtual short Hp { get; set; }
+        [Index(0)] public virtual string Player { get; set; }
+        [Index(1)] public virtual short VariationHP { get; set; }
     }
 
 

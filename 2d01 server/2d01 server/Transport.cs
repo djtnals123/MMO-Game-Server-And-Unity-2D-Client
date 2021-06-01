@@ -19,6 +19,7 @@ namespace _2d01_server
         private static MySqlTransaction transaction;
 
         private static Dictionary<string, ClientInfo> userList = new Dictionary<string, ClientInfo>();
+        private static Dictionary<string, ClientInfo> userListByName = new Dictionary<string, ClientInfo>();
         private static Dictionary<int, Map> map = new Dictionary<int, Map>();
 
         private static ServerPacket.Packet serverPacket = null;
@@ -106,6 +107,17 @@ namespace _2d01_server
                             table.Close();
                             break;
                         }
+                    case ClientPacket.PacketType.HPlayerHpSynchronization:
+                        {
+                            ClientPacket.HPlayerHpSynchronization C_hpSyn = (ClientPacket.HPlayerHpSynchronization)deserialize;
+                            string hp = C_hpSyn.VariationHP.ToString();
+                            if (C_hpSyn.VariationHP >= 0)
+                                hp = hp.Insert(0, "+");
+                            sql = "UPDATE account SET hp = hp " + hp + " WHERE id = '" + C_hpSyn.Player + "'";
+                            table = new MySqlCommand(sql, connection).ExecuteReader();
+                            table.Close();
+                            break;
+                        }
                     default:
                         break;
                 }
@@ -124,6 +136,8 @@ namespace _2d01_server
                             table = new MySqlCommand(sql, connection).ExecuteReader();
                             if (table.Read())
                             {
+                                int maxHP = table.GetInt16("max_hp");
+                                int hp = table.GetInt16("hp");
                                 int mapCode = table.GetInt32("map");
                                 if (!map.ContainsKey(mapCode))
                                     map.Add(mapCode, new Map(mapCode));
@@ -131,6 +145,7 @@ namespace _2d01_server
                                 var newClinet = new ClientInfo(remoteEP, loginPacket.Id, table.GetInt32("account"), map[mapCode]); //
                                 table.Close();
                                 userList.Add(remoteEP.ToString(), newClinet);
+                                userListByName.Add(newClinet.Player, newClinet);
                                 map[mapCode].UserList.Add(remoteEP.ToString(), newClinet);
 
 
@@ -147,41 +162,15 @@ namespace _2d01_server
                                     Player = newClinet.Player,
                                     Equips = equips,
                                     Map = mapCode,
+                                    MaxHP = (short)maxHP,
+                                    HP = (short)hp,
                                     RemoteEP = remoteEP.ToString()
                                 };
                                 dgram = ZeroFormatterSerializer.Serialize<ServerPacket.Packet>(serverPacket);
+                                ServerPacket.Packet d = ZeroFormatterSerializer.Deserialize<ServerPacket.Packet>(dgram);
                                 Send(dgram, hRemoteEP);
                             }
                             else serverPacket = new ServerPacket.LoginFailure();
-                            break;
-                        }
-                    case ClientPacket.PacketType.HpSynchronization:
-                        {
-                            ClientPacket.HpSynchronization C_hpSyn = (ClientPacket.HpSynchronization)deserialize;
-                            string hp = C_hpSyn.Hp.ToString();
-                            if (C_hpSyn.Hp >= 0)
-                                hp = hp.Insert(0, "+");
-                            sql = "UPDATE account SET hp = hp " + hp + " WHERE id = '" + client.Player + "'";
-                            table = new MySqlCommand(sql, connection).ExecuteReader();
-
-                            if (table.RecordsAffected > 0)
-                            {
-                                table.Close();
-                                sql = "SELECT max_hp, hp FROM account WHERE id = '" + client.Player + "'";
-                                table = new MySqlCommand(sql, connection).ExecuteReader();
-                                if (table.Read())
-                                {
-                                    serverPacket = new ServerPacket.HpSynchronization
-                                    {
-                                        Id = client.Player,
-                                        Hp = table.GetInt16("hp"),
-                                        MaxHp = table.GetInt16("max_hp")
-                                    };
-                                    dgram = ZeroFormatterSerializer.Serialize<ServerPacket.Packet>(serverPacket);
-                                    SendThisMap(dgram, remoteEP, true, true);
-                                }
-                            }
-                            else;
                             break;
                         }
                     case ClientPacket.PacketType.PlayerSetting:
@@ -223,7 +212,7 @@ namespace _2d01_server
                                     Item = item,
                                     Count = count
                                 };
-                                dgram = ZeroFormatterSerializer.Serialize<ServerPacket.Packet>(serverPacket);
+                                dgram = ZeroFormatterSerializer.Serialize(serverPacket);
                                 Send(dgram, remoteEP);
                             }
                             break;
@@ -238,6 +227,7 @@ namespace _2d01_server
                     case ClientPacket.PacketType.Disconnected:
                         {
                             DisconnectPlayer(remoteEP, true);
+                            userListByName.Remove(userList[remoteEP.ToString()].Player);
                             userList.Remove(remoteEP.ToString());
                             break;
                         }
@@ -286,7 +276,7 @@ namespace _2d01_server
                                     Slot1 = slotChange.Slot1,
                                     Slot2 = slotChange.Slot2
                                 };
-                                dgram = ZeroFormatterSerializer.Serialize<ServerPacket.Packet>(serverPacket);
+                                dgram = ZeroFormatterSerializer.Serialize(serverPacket);
                                 Send(dgram, remoteEP);
                             }
                             break;
@@ -356,10 +346,10 @@ namespace _2d01_server
                                 if (result)
                                 {
                                     serverPacket = new ServerPacket.PutOnPlayer { Player = client.Player, Item = iv_item };
-                                    dgram = ZeroFormatterSerializer.Serialize<ServerPacket.Packet>(serverPacket);
+                                    dgram = ZeroFormatterSerializer.Serialize(serverPacket);
                                     SendThisMap(dgram, remoteEP, true, false);
                                     serverPacket = new ServerPacket.UseItem { Type = useItem.Type, Slot = useItem.Slot, Item = iv_item };
-                                    dgram = ZeroFormatterSerializer.Serialize<ServerPacket.Packet>(serverPacket);
+                                    dgram = ZeroFormatterSerializer.Serialize(serverPacket);
                                     Send(dgram, remoteEP);
                                 }
                             }
@@ -423,11 +413,11 @@ namespace _2d01_server
                                         {
                                             transaction.Commit();
                                             serverPacket = new ServerPacket.TakeOffPlayer { Player = client.Player, SubType = takeOffEquipment.SubType };
-                                            dgram = ZeroFormatterSerializer.Serialize<ServerPacket.Packet>(serverPacket);
+                                            dgram = ZeroFormatterSerializer.Serialize(serverPacket);
                                             SendThisMap(dgram, remoteEP, true, false);
 
                                             serverPacket = new ServerPacket.TakeOffEquipment { SubType = takeOffEquipment.SubType, InventorySlot = takeOffEquipment.InventorySlot };
-                                            dgram = ZeroFormatterSerializer.Serialize<ServerPacket.Packet>(serverPacket);
+                                            dgram = ZeroFormatterSerializer.Serialize(serverPacket);
                                             Send(dgram, remoteEP);
                                         }
                                         else transaction.Rollback();
@@ -451,7 +441,7 @@ namespace _2d01_server
         {
             ClientInfo client = userList[remoteEP.ToString()];
             serverPacket = new ServerPacket.DisconnectedPlayer { Id = client.Player };
-            byte[] dgram = ZeroFormatterSerializer.Serialize<ServerPacket.Packet>(serverPacket);
+            byte[] dgram = ZeroFormatterSerializer.Serialize(serverPacket);
             Console.WriteLine("삭제2");
             client.Map.UserList.Remove(remoteEP.ToString());
             SendThisMap(dgram, remoteEP, willSendHeadlessServer, true);
@@ -540,7 +530,8 @@ namespace _2d01_server
                 }
                 else
                 {
-                    DisconnectPlayer(userList[key].RemoteEP, true); 
+                    DisconnectPlayer(userList[key].RemoteEP, true);
+                    userListByName.Remove(userList[key].Player);
                     userList.Remove(key);
 
                     Console.WriteLine("삭제1");

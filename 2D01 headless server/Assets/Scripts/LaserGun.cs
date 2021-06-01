@@ -12,7 +12,11 @@ public class LaserGun : MonoBehaviour
     private SpriteRenderer m_playerSR;
     private PlayerScript m_player;
 
+    private bool isDelay = false;
+
     private bool m_curParentFlapX;
+
+
 
     // Start is called before the first frame update
     void Start()
@@ -34,10 +38,16 @@ public class LaserGun : MonoBehaviour
     {
         if(m_curParentFlapX)
         {
-            RaycastHit2D hit = Physics2D.Raycast(m_FirePoint.position, -(m_FirePoint.transform.right), m_distanceRay,
-                1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D hit = MapManager.Instance.Map[m_player.Map].SceneMap.GetPhysicsScene2D().Raycast(m_FirePoint.position, -(m_FirePoint.transform.right), m_distanceRay,
+                1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("Mob"));
             if (hit.collider != null)
             {
+                RemoteObject obj = hit.transform.GetComponent<RemoteObject>();
+                if(obj != null && !isDelay)
+                {
+                    StartCoroutine(Delay());
+                    obj.Hit();
+                }
                 DrawRay(m_FirePoint.position, hit.point);
             }
             else
@@ -47,10 +57,16 @@ public class LaserGun : MonoBehaviour
         }
         else
         {
-            RaycastHit2D hit = Physics2D.Raycast(m_FirePoint.position, m_FirePoint.transform.right, m_distanceRay,
-                1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D hit = MapManager.Instance.Map[m_player.Map].SceneMap.GetPhysicsScene2D().Raycast(m_FirePoint.position, m_FirePoint.transform.right, m_distanceRay,
+                1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("Mob"));
             if (hit.collider != null)
             {
+                RemoteObject obj = hit.transform.GetComponent<RemoteObject>();
+                if (obj != null && !isDelay)
+                {
+                    StartCoroutine(Delay());
+                    obj.Hit();
+                }
                 DrawRay(m_FirePoint.position, hit.point);
             }
             else
@@ -58,6 +74,13 @@ public class LaserGun : MonoBehaviour
                 DrawRay(m_FirePoint.position, m_FirePoint.position + Vector3.right * m_distanceRay);
             }
         }
+    }
+
+    IEnumerator Delay()
+    {
+        isDelay = true;
+        yield return new WaitForSeconds(0.1f);
+        isDelay = false;
     }
 
     void DrawRay(Vector2 startPos, Vector2 endPos)

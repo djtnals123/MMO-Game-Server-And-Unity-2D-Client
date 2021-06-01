@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5840654701435416690}
   - component: {fileID: 7870988094135017118}
   - component: {fileID: 465371579277275680}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -134,11 +134,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecdc7656b06737c4e9bcdd1cffb24539, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RB: {fileID: 0}
   SR: {fileID: 0}
-  NicNameText: {fileID: 0}
+  nicname: 
   HealthImage: {fileID: 0}
-  m_isMine: 0
 --- !u!1 &2682177568351520598
 GameObject:
   m_ObjectHideFlags: 0
@@ -150,7 +148,7 @@ GameObject:
   - component: {fileID: 7619130568093531913}
   - component: {fileID: 3300740621356172099}
   - component: {fileID: 7648663388889962537}
-  m_Layer: 5
+  m_Layer: 10
   m_Name: Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -224,7 +222,7 @@ GameObject:
   - component: {fileID: 1823941965608439545}
   - component: {fileID: 7956762678066111114}
   - component: {fileID: 6490301795998388645}
-  m_Layer: 5
+  m_Layer: 10
   m_Name: HealthArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -299,7 +297,7 @@ GameObject:
   - component: {fileID: 4555555155821760569}
   - component: {fileID: 6959686183993724145}
   - component: {fileID: 2471042705652334871}
-  m_Layer: 5
+  m_Layer: 10
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -399,7 +397,7 @@ GameObject:
   - component: {fileID: 6607206450755687386}
   - component: {fileID: 2573468453470359555}
   - component: {fileID: 2754627278277085556}
-  m_Layer: 5
+  m_Layer: 10
   m_Name: NickNameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}

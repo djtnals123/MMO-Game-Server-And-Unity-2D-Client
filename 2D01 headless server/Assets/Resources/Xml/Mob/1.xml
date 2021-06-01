@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Mob code="1">
+  <info>
+    <maxHp value = "100"/>
+  </info>
+</Mob>

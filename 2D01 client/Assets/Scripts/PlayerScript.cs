@@ -7,13 +7,11 @@ using System;
 using System.Text.RegularExpressions;
 using UnityEngine.SceneManagement;
 
-public class PlayerScript : MonoBehaviour
+public class PlayerScript : RemoteObject
 {
-    public Rigidbody2D RB;
     public Animator AN;
     public SpriteRenderer SR;
     public Text NicNameText;
-    public Image HealthImage;
     public bool m_isMine = false;
 
     private bool m_enableSpace = false;
@@ -24,12 +22,8 @@ public class PlayerScript : MonoBehaviour
     private float m_curRot;
     private bool canWarp = true;
 
+
     public GameObject UI { get; set; }
-
-    void Awake()
-    {
-
-    }
 
     public void ItsMe()
     {
@@ -68,7 +62,7 @@ public class PlayerScript : MonoBehaviour
         if (m_isMine)
         {
             float axis = Input.GetAxisRaw("Horizontal");
-            RB.velocity = new Vector2(4 * axis, RB.velocity.y);
+            Rigid.velocity = new Vector2(4 * axis, Rigid.velocity.y);
 
 
             if (axis != 0)
@@ -95,14 +89,15 @@ public class PlayerScript : MonoBehaviour
                     if(canWarp)
                     {
                         canWarp = false;
+                        Debug.Log("hihihi");
                         WarpMap(int.Parse(Regex.Replace(obj.name, @"\D", "")));
                         Invoke("warpDelay", 1f);
                     }
                 }
                 else
                 {
-                    RB.velocity = Vector2.zero;
-                    RB.AddForce(Vector2.up * 700);
+                    Rigid.velocity = Vector2.zero;
+                    Rigid.AddForce(Vector2.up * 700);
                 }
             }
             if (Input.GetKeyDown(KeyCode.I))
@@ -130,10 +125,11 @@ public class PlayerScript : MonoBehaviour
         PacketManager.Instance.WarpMap(portal);
     }
 
-    public void Hit() //오류 수정예정
+    public override void Hit() //오류 수정예정
     {
-        if(m_isMine)
-            PacketManager.Instance.HpSynchronization(-10);
+    }
+    public override void HpRecovery()
+    {
     }
 
 
@@ -141,31 +137,28 @@ public class PlayerScript : MonoBehaviour
     {
         Debug.Log(positionX + " " + positionY);
         CurPos = new Vector3(positionX, positionY);
-        RB.velocity = new Vector3(velocityX, velocityY);
-        RB.rotation = rotation;
-        RB.angularVelocity = angularVelocity;
+        Rigid.velocity = new Vector3(velocityX, velocityY);
+        Rigid.rotation = rotation;
+        Rigid.angularVelocity = angularVelocity;
         SR.flipX = flipX;
     }
 
     private void Synchronization()
     {
-        if (canWarp && transform.position.x != CurPos.x || transform.position.y != CurPos.y || RB.rotation != m_curRot)
+        if (canWarp && transform.position.x != CurPos.x || transform.position.y != CurPos.y || Rigid.rotation != m_curRot)
         {
-            if (SceneManager.GetActiveScene().name.Contains("Map_"))
+            CurPos = new Vector3(transform.position.x, transform.position.y);
+            PacketManager.Instance.ObjectSynchronization(InitObject.playerNicname, Rigid.transform.position.x, Rigid.transform.position.y, Rigid.velocity.x, Rigid.velocity.y, Rigid.rotation, Rigid.angularVelocity, SR.flipX, InitObject.MapCheck);
+
+            m_curRot = Rigid.rotation;
+            try
             {
-                CurPos = new Vector3(transform.position.x, transform.position.y);
-                PacketManager.Instance.ObjectSynchronization(InitObject.playerNicname, RB.transform.position.x, RB.transform.position.y, RB.velocity.x, RB.velocity.y, RB.rotation, RB.angularVelocity, SR.flipX, InitObject.MapCheck);
+//                int map = int.Parse(Regex.Replace(SceneManager.GetActiveScene().name, @"\D", ""));
 
-                m_curRot = RB.rotation;
-                try
-                {
-    //                int map = int.Parse(Regex.Replace(SceneManager.GetActiveScene().name, @"\D", ""));
-
-                }
-                catch (FormatException e)
-                {
-                    Debug.Log("숫자없음 " + e.ToString());
-                }
+            }
+            catch (FormatException e)
+            {
+                Debug.Log("숫자없음 " + e.ToString());
             }
 
          }
@@ -206,7 +199,6 @@ public class PlayerScript : MonoBehaviour
     {
         string equipType = null;
         string equipName = null;
-        Debug.Log("gd " + equipCodes.Count);
         foreach (int i in equipCodes)
         {
             switch (i / 10000)
@@ -272,4 +264,5 @@ public class PlayerScript : MonoBehaviour
         if (m_isMine)
             PacketManager.Instance.Disconnected();
     }
+
 }

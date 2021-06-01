@@ -7,16 +7,14 @@ using System.Text.RegularExpressions;
 using UnityEngine.SceneManagement;
 using System.Net;
 
-public class PlayerScript : MonoBehaviour
+public class PlayerScript : RemoteObject
 {
-    public Rigidbody2D RB;
     public SpriteRenderer SR;
     public string nicname;
     public Image HealthImage;
 
     private bool m_enableSpace = false;
     private bool m_keyDownSpace = false;
-    public int Map { get; set; }
     public bool CheckMap { get; set; }
     public IPEndPoint RemoteEP { get; set; }
 
@@ -26,7 +24,7 @@ public class PlayerScript : MonoBehaviour
 
     void Awake()
     {
-        RB = transform.GetComponent<Rigidbody2D>();
+        Rigid = transform.GetComponent<Rigidbody2D>();
         SR = transform.GetComponent<SpriteRenderer>();
 
         CheckMap = false;
@@ -40,19 +38,26 @@ public class PlayerScript : MonoBehaviour
     }
 
 
-    public void Hit() //오류 수정예정
+    public override void Hit()
     {
-    //    if(m_isMine)
-    //        PacketManager.Instance.HpSynchronization(-10);
+        HP -= 10;
+        PacketManager.instance.PlayerHpSynchronization(nicname, -10);
+    }
+    public override void Die()
+    {
+
+    }
+    public override void HpRecovery()
+    {
     }
 
 
     public void SyncPlayer(float positionX, float positionY, float velocityX, float velocityY, float rotation, float angularVelocity, bool flipX)
     {
         CurPos = new Vector3(positionX, positionY);
-        RB.velocity = new Vector3(velocityX, velocityY);
-        RB.rotation = rotation;
-        RB.angularVelocity = angularVelocity;
+        Rigid.velocity = new Vector3(velocityX, velocityY);
+        Rigid.rotation = rotation;
+        Rigid.angularVelocity = angularVelocity;
         SR.flipX = flipX;
     }
 
@@ -159,7 +164,7 @@ public class PlayerScript : MonoBehaviour
 
     private void OnDestroy()
     {
-        InitObject.Map[Map].Remove(InitObject.UserListByName[nicname]);
+        MapManager.Instance.Map[Map].Players.Remove(InitObject.UserListByName[nicname]);
         InitObject.UserList.Remove(RemoteEP.ToString());
         InitObject.UserListByName.Remove(nicname);
     }

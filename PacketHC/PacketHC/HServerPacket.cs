@@ -6,11 +6,12 @@ namespace HServerPacket
 {
     public enum PacketType
     {
-        InitPlayer, LoginSuccess, ObjectSynchronization, AttackPlayer, EnableSpace, InitPlayers, WarpMap
+        InitPlayer, LoginSuccess, ObjectSynchronization, AttackPlayer, EnableSpace, InitObjects, WarpMap, MoveMob, PlayerHpSynchronization,
+        MobHpSynchronization, ReSpawnMobs
     }
 
-    [Union(typeof(ObjectSynchronization), typeof(AttackPlayer), typeof(EnableSpace), typeof(LoginSuccess), typeof(InitPlayer), typeof(InitPlayers),
-        typeof(WarpMap))]
+    [Union(typeof(ObjectSynchronization), typeof(AttackPlayer), typeof(EnableSpace), typeof(LoginSuccess), typeof(InitPlayer), typeof(InitObjects),
+        typeof(WarpMap), typeof(MoveMob), typeof(PlayerHpSynchronization), typeof(MobHpSynchronization), typeof(ReSpawnMobs))]
     public abstract class Packet
     {
         [UnionKey] public abstract PacketType packetType { get; }
@@ -78,6 +79,8 @@ namespace HServerPacket
         [Index(1)] public virtual float PositionX { get; set; }
         [Index(2)] public virtual float PositionY { get; set; }
         [Index(3)] public virtual List<int> Equips { get; set; }
+        [Index(4)] public virtual short MaxHP { get; set; }
+        [Index(5)] public virtual short HP { get; set; }
     }
 
 
@@ -95,20 +98,20 @@ namespace HServerPacket
         [Index(1)] public virtual List<int> Equips { get; set; }
         [Index(2)] public virtual float PositionX { get; set; }
         [Index(3)] public virtual float PositionY { get; set; }
-        [Index(4)] public virtual float VelocityX { get; set; }
-        [Index(5)] public virtual float VelocityY { get; set; }
-        [Index(6)] public virtual bool FlipX { get; set; }
-        [Index(7)] public virtual bool MapCheck { get; set; }
+        [Index(4)] public virtual bool FlipX { get; set; }
+        [Index(5)] public virtual bool MapCheck { get; set; }
+        [Index(6)] public virtual short MaxHP { get; set; }
+        [Index(7)] public virtual short HP { get; set; }
     }
 
     [ZeroFormattable]
-    public class InitPlayers : Packet
+    public class InitObjects : Packet
     {
         public override PacketType packetType
         {
             get
             {
-                return PacketType.InitPlayers;
+                return PacketType.InitObjects;
             }
         }
         [Index(0)] public virtual List<string> Players { get; set; }
@@ -118,6 +121,13 @@ namespace HServerPacket
         [Index(4)] public virtual List<float> VelocityX { get; set; }
         [Index(5)] public virtual List<float> VelocityY { get; set; }
         [Index(6)] public virtual List<bool> FlipX { get; set; }
+        [Index(7)] public virtual List<int> MaxHP { get; set; }
+        [Index(8)] public virtual List<int> HP { get; set; }
+        [Index(9)] public virtual LinkedList<int> DeadMobs { get; set; }
+        [Index(10)] public virtual LinkedList<sbyte> NextMoves { get; set; }
+        [Index(11)] public virtual LinkedList<float> MobPosX { get; set; }
+        [Index(12)] public virtual LinkedList<float> MobPosY { get; set; }
+        [Index(13)] public virtual LinkedList<short> MobHP { get; set; }
     }
     [ZeroFormattable]
     public class WarpMap : Packet
@@ -129,8 +139,64 @@ namespace HServerPacket
                 return PacketType.WarpMap;
             }
         }
-        [Index(1)] public virtual int LinkedMap { get; set; }
+        [Index(0)] public virtual int LinkedMap { get; set; }
+        [Index(1)] public virtual float PosX { get; set; }
+        [Index(2)] public virtual float PosY { get; set; }
+    }
+    [ZeroFormattable]
+    public class MoveMob : Packet
+    {
+        public override PacketType packetType
+        {
+            get
+            {
+                return PacketType.MoveMob;
+            }
+        }
+        [Index(0)] public virtual int MobID { get; set; }
+        [Index(1)] public virtual sbyte NextMove { get; set; }
         [Index(2)] public virtual float PosX { get; set; }
         [Index(3)] public virtual float PosY { get; set; }
+        [Index(4)] public virtual float VelY { get; set; }
     }
+    [ZeroFormattable]
+    public class PlayerHpSynchronization : Packet
+    {
+        public override PacketType packetType
+        {
+            get
+            {
+                return PacketType.PlayerHpSynchronization;
+            }
+        }
+        [Index(0)] public virtual string Player { get; set; }
+        [Index(1)] public virtual short VariationHP { get; set; }
+    }
+    [ZeroFormattable]
+    public class MobHpSynchronization : Packet
+    {
+        public override PacketType packetType
+        {
+            get
+            {
+                return PacketType.MobHpSynchronization;
+            }
+        }
+        [Index(0)] public virtual sbyte MobID { get; set; }
+        [Index(1)] public virtual short VariationHP { get; set; }
+        [Index(2)] public virtual bool MapCheck { get; set; }
+    }
+    [ZeroFormattable]
+    public class ReSpawnMobs : Packet
+    {
+        public override PacketType packetType
+        {
+            get
+            {
+                return PacketType.ReSpawnMobs;
+            }
+        }
+    }
+
+
 }

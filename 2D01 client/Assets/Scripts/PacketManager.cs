@@ -45,12 +45,12 @@ public class PacketManager : MonoBehaviour
 
     public void SendPacket(ClientPacket.Packet clientPacket)
     {
-        var serialize = ZeroFormatterSerializer.Serialize<ClientPacket.Packet>(clientPacket);
+        var serialize = ZeroFormatterSerializer.Serialize(clientPacket);
         Client.Send(serialize, serialize.Length, remoteEP); // 데이터 송신
     }
     public void SendPacket(HClientPacket.Packet clientPacket)
     {
-        var serialize = ZeroFormatterSerializer.Serialize<HClientPacket.Packet>(clientPacket);
+        var serialize = ZeroFormatterSerializer.Serialize(clientPacket);
         Client.Send(serialize, serialize.Length, hRemoteEP); // 데이터 송신
     }
 
@@ -69,10 +69,10 @@ public class PacketManager : MonoBehaviour
         UdpReceiveResult result;
         while (DgramQueue.TryDequeue(out result))
         {
-            Debug.Log(result.RemoteEndPoint.Address + ":" + result.RemoteEndPoint.Port);
             if (result.RemoteEndPoint.ToString() == "127.0.0.1:7777")
             {
                 ServerPacket.Packet deserialize = ZeroFormatterSerializer.Deserialize<ServerPacket.Packet>(result.Buffer);
+                Debug.Log(result.RemoteEndPoint.Address + ":" + result.RemoteEndPoint.Port + " " + deserialize.packetType.ToString("g"));
                 PlayerScript player;
                 switch (deserialize.packetType)
                 {
@@ -82,19 +82,6 @@ public class PacketManager : MonoBehaviour
                         Inventory.SetInventories(playersetting.Item, playersetting.Type, playersetting.Count, playersetting.Slot, playersetting.MaxEquipmentSlot, playersetting.MaxUseableSlot, playersetting.MaxEtcSlot, playersetting.MaxEnhancementSlot);
 
 
-                        break;
-                    case ServerPacket.PacketType.HpSynchronization:
-                        ServerPacket.HpSynchronization hpSyn = (ServerPacket.HpSynchronization)deserialize;
-                        if (hpSyn.Id == InitObject.playerNicname)
-                            player = GameObject.Find("Player(Clone)").GetComponent<PlayerScript>();
-                        else player = GameObject.Find("Player " + hpSyn.Id).GetComponent<PlayerScript>();
-                        if (player != null)
-                        {
-                            PlayerScript playerComponent = player.GetComponent<PlayerScript>();
-                            playerComponent.HealthImage.fillAmount = (float)hpSyn.Hp / hpSyn.MaxHp;
-                            if (playerComponent.HealthImage.fillAmount <= 0)
-                                Destroy(playerComponent);
-                        }
                         break;
                     case ServerPacket.PacketType.ConnectionCheck:
                         ConnectionAck();
@@ -138,6 +125,7 @@ public class PacketManager : MonoBehaviour
             else if(result.RemoteEndPoint.ToString() == "127.0.0.1:7778")
             {
                 HServerPacket.Packet deserialize = ZeroFormatterSerializer.Deserialize<HServerPacket.Packet>(result.Buffer);
+                Debug.Log(result.RemoteEndPoint.Address + ":" + result.RemoteEndPoint.Port + " " + deserialize.packetType.ToString("g"));
 
                 switch (deserialize.packetType)
                 {
@@ -161,23 +149,50 @@ public class PacketManager : MonoBehaviour
                         break;
                     case HServerPacket.PacketType.LoginSuccess:
                         HServerPacket.LoginSuccess loginSuccess = (HServerPacket.LoginSuccess)deserialize;
-                        InitObject.InitMinePlayer(new Vector2(loginSuccess.PositionX, loginSuccess.PositionY), loginSuccess.Equips);
-                        LoadingSceneManager.LoadScene("Map_" + loginSuccess.Map.ToString());
+                        InitObject.InitMinePlayer(loginSuccess.Map, new Vector2(loginSuccess.PositionX, loginSuccess.PositionY), loginSuccess.Equips, loginSuccess.MaxHP, loginSuccess.HP);
                         break;
                     case HServerPacket.PacketType.InitPlayer:
                         HServerPacket.InitPlayer initPlayer = (HServerPacket.InitPlayer)deserialize;
                         if (initPlayer.MapCheck == InitObject.MapCheck)
-                            InitObject.InitPlayer(initPlayer.Player, initPlayer.Equips, new Vector2(initPlayer.PositionX, initPlayer.PositionY), Vector2.zero, initPlayer.FlipX);
+                            InitObject.InitPlayer(initPlayer.Player, initPlayer.Equips, new Vector2(initPlayer.PositionX, initPlayer.PositionY), 
+                                Vector2.zero, initPlayer.FlipX, initPlayer.MaxHP, initPlayer.HP);
                         break;
 
-                    case HServerPacket.PacketType.InitPlayers:
-                        HServerPacket.InitPlayers initPlayers = (HServerPacket.InitPlayers)deserialize;
-                        InitObject.InitPlayers(initPlayers.Players, initPlayers.Equips, initPlayers.PositionX, initPlayers.PositionY, initPlayers.VelocityX, initPlayers.VelocityY, initPlayers.FlipX);
+                    case HServerPacket.PacketType.InitObjects:
+                        HServerPacket.InitObjects initObjects = (HServerPacket.InitObjects)deserialize;
+                        InitObject.InitObjects(initObjects.Players, initObjects.Equips, initObjects.PositionX, initObjects.PositionY, initObjects.VelocityX, 
+                            initObjects.VelocityY, initObjects.FlipX, initObjects.MaxHP, initObjects.HP, initObjects.DeadMobs, initObjects.NextMoves,
+                            initObjects.MobPosX, initObjects.MobPosY, initObjects.MobHP);
                         break;
                     case HServerPacket.PacketType.WarpMap:
                         HServerPacket.WarpMap warpMap = (HServerPacket.WarpMap)deserialize;
+                        Debug.Log(warpMap.LinkedMap + " " + warpMap.PosX + " " + warpMap.PosY);
                         InitObject.WarpMap(warpMap.LinkedMap, new Vector2(warpMap.PosX, warpMap.PosY));
 
+                        break;
+                    case HServerPacket.PacketType.MoveMob:
+                        HServerPacket.MoveMob moveMob = (HServerPacket.MoveMob)deserialize;
+                        if(InitObject.Mobs != null)
+                            InitObject.Mobs[moveMob.MobID - 1].GetComponent<MobAI_1>().MobSync( 
+                                new Vector2(moveMob.PosX, moveMob.PosY), moveMob.VelY, moveMob.NextMove);
+                        break;
+
+                    case HServerPacket.PacketType.PlayerHpSynchronization:
+                        HServerPacket.PlayerHpSynchronization hpSync = (HServerPacket.PlayerHpSynchronization)deserialize;
+                        if (hpSync.Player == InitObject.playerNicname)
+                            player = InitObject.Player;
+                        else player = GameObject.Find("Player " + hpSync.Player).GetComponent<PlayerScript>();
+                        if (player != null)
+                            player.HP += hpSync.VariationHP;
+                        break;
+                    case HServerPacket.PacketType.MobHpSynchronization:
+                        HServerPacket.MobHpSynchronization mobHpSync = (HServerPacket.MobHpSynchronization)deserialize;
+                        Debug.Log(mobHpSync.VariationHP + "  " + InitObject.Mobs[mobHpSync.MobID - 1].HP);
+                        if (InitObject.MapCheck == mobHpSync.MapCheck)
+                            InitObject.Mobs[mobHpSync.MobID - 1].HP += mobHpSync.VariationHP;
+                        break;
+                    case HServerPacket.PacketType.ReSpawnMobs:
+                        InitObject.ReSpawnMobs();
                         break;
                     default:
                         break;
@@ -186,6 +201,12 @@ public class PacketManager : MonoBehaviour
             }
         }
     }
+
+    public void CallRequestObjects() =>
+        Invoke("RequestObjects", 0.0f);
+    public void RequestObjects() =>
+        SendPacket(new HClientPacket.RequestObjects { });
+
 
     public void ConnectionAck() =>
         SendPacket(new ClientPacket.ConnectionAck());
@@ -199,8 +220,7 @@ public class PacketManager : MonoBehaviour
         SendPacket(new HClientPacket.AttackPlayer());
 
 
-    public void HpSynchronization(int hp) =>
-        SendPacket(new ClientPacket.HpSynchronization { Hp = (short)hp });
+ //   public void HpSynchronization(int hp) { }
 
     public void ObjectSynchronization(string name, float posX, float posY, float velX, float velY, float rotation, float angularVel, bool flipX, bool mapCheck) =>
         SendPacket(new HClientPacket.ObjectSynchronization

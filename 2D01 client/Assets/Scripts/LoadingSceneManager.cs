@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 public class LoadingSceneManager : MonoBehaviour
 {
     public static string nextScene;
-    public static Object lockObject = new Object();
     public static bool IsLoading { get; set; } = true;
 
     [SerializeField]
@@ -45,11 +44,7 @@ public class LoadingSceneManager : MonoBehaviour
                 progressBar.fillAmount = Mathf.Lerp(progressBar.fillAmount, 1f, timer);
                 if (progressBar.fillAmount == 1.0f)
                 {
-                    lock(lockObject)
-                    {
-                        op.allowSceneActivation = true;
-                    }
-
+                    op.allowSceneActivation = true;
                     SceneManager.UnloadSceneAsync("Loading");
                     yield break;
                 }
@@ -63,11 +58,6 @@ public class LoadingSceneManager : MonoBehaviour
         MainScene.CurrentSceneName = nextScene;
         SceneManager.SetActiveScene(SceneManager.GetSceneByName(nextScene));
         IsLoading = false;
-        if(InitObject.DisabledRemoteObjectList != null)
-        {
-            foreach (var obj in InitObject.DisabledRemoteObjectList)
-                obj.SetActive(true);
-            InitObject.DisabledRemoteObjectList = null;
-        }
+        PacketManager.Instance.CallRequestObjects();
     }
 }

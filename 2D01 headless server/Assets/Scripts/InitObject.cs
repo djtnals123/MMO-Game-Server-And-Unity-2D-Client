@@ -6,15 +6,12 @@ using UnityEngine.SceneManagement;
 
 public class InitObject : MonoBehaviour
 {
-    private static bool _usePortal = true;
     public static bool MapCheck { get; set; }
     private static GameObject playerPrefab;
 
     public static Dictionary<string, PlayerScript> UserList { get; set; } // key-remoteEP.toString()
     public static Dictionary<string, PlayerScript> UserListByName { get; set; } // key-name
-    public static Dictionary<int, LinkedList<PlayerScript>> Map { get; set; }
-    public static Dictionary<int, Scene> SceneMap { get; set; }
-    private static LinkedList<PlayerScript> initPlayerList = new LinkedList<PlayerScript>();
+    private static LinkedList<RemoteObject> initObjectList = new LinkedList<RemoteObject>();
     private static readonly LoadSceneParameters loadSceneParameters = new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics2D);
     private static Scene tempScene;
 
@@ -24,28 +21,18 @@ public class InitObject : MonoBehaviour
         tempScene = SceneManager.LoadScene("Temp", loadSceneParameters);
         UserList = new Dictionary<string, PlayerScript>();
         UserListByName = new Dictionary<string, PlayerScript>();
-        Map = new Dictionary<int, LinkedList<PlayerScript>>();
-        SceneMap = new Dictionary<int, Scene>();
         playerPrefab = Resources.Load("Prefabs/Player") as GameObject;
 
-        if (_usePortal)
-        {/*
-            Vector2 newPos = GameObject.Find("Portal " + _nextMapPortal).transform.position;
-            player.transform.position = newPos;
-            player.CurPos = newPos;
-            InitObject.Player.gameObject.SetActive(true); */
-        }
-        else
-        {
-      //      player.transform.position = NextPosition;
-        }
 
     }
 
 
 
-    public static void InitPlayer(int map, string playerName, List<int> equips, Vector2 position, string remoteEP)
+    public static void InitPlayer(int map, string playerName,int maxHP, int hp, List<int> equips, Vector2 position, string remoteEP)
     {
+        if (!MapManager.Instance.Map.ContainsKey(map))
+            MapManager.Instance.Map.Add(map, new Map());
+
         Scene scene = SceneManager.GetSceneByName("Map_" + map);
         bool isLoaded;
         if (scene.isLoaded)
@@ -55,8 +42,9 @@ public class InitObject : MonoBehaviour
         }
         else
         {
-            SceneMap.Add(map, SceneManager.LoadScene("Map_" + map, loadSceneParameters));
             SceneManager.SetActiveScene(tempScene);
+            MapManager.Instance.Map[map].SceneMap = SceneManager.LoadScene("Map_" + map, loadSceneParameters);
+                InitMob(map);
             isLoaded = false;
         }
 
@@ -67,40 +55,58 @@ public class InitObject : MonoBehaviour
             UserList.Add(remoteEP, player);
             UserListByName.Add(playerName, player);
         }
-        if (!Map.ContainsKey(map))
-            Map.Add(map, new LinkedList<PlayerScript>());
-        Map[map].AddLast(player);
+        MapManager.Instance.Map[map].Players.AddLast(player);
         player.Map = map;
         player.CurPos = position;
         player.transform.position = position;
         player.name = "Player " + playerName;
         player.nicname = playerName;
         player.PutOnEquipment(equips);
+        player.MaxHP = maxHP;
+        player.HP = hp;
         string[] splitRemoteEP = remoteEP.Split(':');
         player.RemoteEP = new IPEndPoint(IPAddress.Parse(splitRemoteEP[0]), int.Parse(splitRemoteEP[1]));
 
         if (!isLoaded)
         {
-            initPlayerList.AddLast(player);
+            initObjectList.AddLast(player);
             player.gameObject.SetActive(false);
         }
     }
+
+    public static void InitMob(int map)
+    {
+        Dictionary<int, GameObject> MobPrefabs = new Dictionary<int, GameObject>();
+        foreach (var key in GameData.Maps[map].mobs.Keys)
+        {
+            var mobData = GameData.Maps[map].mobs;
+            if (!MobPrefabs.ContainsKey(mobData[key].code))
+                MobPrefabs.Add(mobData[key].code, Resources.Load("Prefabs/Mob/Mob_" + mobData[key].code) as GameObject);
+            RemoteObject mob = Instantiate(MobPrefabs[mobData[key].code], mobData[key].position, new Quaternion()).GetComponent<RemoteObject>();
+            mob.Initialise(mobData[key].id, map, GameData.Mobs[mobData[key].id].MaxHp);
+
+            initObjectList.AddLast(mob);
+            MapManager.Instance.Map[map].Mobs.AddLast(mob.GetComponent<RemoteObject>());
+        }
+    }
+
     public static void WarpMap(PlayerScript player, int portal)
     {
-        player.RB.velocity = Vector2.zero;
-        Map[player.Map].Remove(player);
+        player.Rigid.velocity = Vector2.zero;
+        MapManager.Instance.Map[player.Map].Players.Remove(player);
 
-        int linkedMap = MapData.Maps[player.Map].portal[portal].linkedMap;
-        int linkedPortal = MapData.Maps[player.Map].portal[portal].linkedPortal;
+        int linkedMap = GameData.Maps[player.Map].portal[portal].linkedMap;
+        int linkedPortal = GameData.Maps[player.Map].portal[portal].linkedPortal;
 
         player.Map = linkedMap;
         player.CheckMap = !player.CheckMap;
-        player.CurPos = MapData.Maps[linkedMap].portal[linkedPortal].position;
+        player.CurPos = GameData.Maps[linkedMap].portal[linkedPortal].position;
         player.transform.position = player.CurPos;
 
-        if (!Map.ContainsKey(player.Map))
-            Map.Add(player.Map, new LinkedList<PlayerScript>());
-        Map[player.Map].AddLast(player);
+        if (!MapManager.Instance.Map.ContainsKey(player.Map))
+            MapManager.Instance.Map.Add(player.Map, new Map());
+
+        MapManager.Instance.Map[player.Map].Players.AddLast(player);
 
         Scene scene = SceneManager.GetSceneByName("Map_" + player.Map);
         if (scene.isLoaded)
@@ -109,8 +115,11 @@ public class InitObject : MonoBehaviour
         }
         else
         {
-            SceneMap.Add(player.Map, SceneManager.LoadScene("Map_" + player.Map, loadSceneParameters));
-            initPlayerList.AddLast(player);
+            SceneManager.SetActiveScene(tempScene);
+
+            MapManager.Instance.Map[player.Map].SceneMap = SceneManager.LoadScene("Map_" + player.Map, loadSceneParameters);
+            InitMob(player.Map);
+            initObjectList.AddLast(player);
             player.gameObject.SetActive(false);
         }
     }
@@ -119,22 +128,20 @@ public class InitObject : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        var toRemove = new List<PlayerScript>();
-        foreach (PlayerScript player in initPlayerList)
+        var toRemove = new List<RemoteObject>();
+        foreach (RemoteObject obj in initObjectList)
         {
-            Scene scene = SceneMap[player.Map];
+            Scene scene = MapManager.Instance.Map[obj.Map].SceneMap;
             if (scene.isLoaded)
             {
-                Debug.Log("add");
-                
-                toRemove.Add(player);
-                SceneManager.MoveGameObjectToScene(player.gameObject, scene);
-                player.gameObject.SetActive(true);
+                toRemove.Add(obj);
+                SceneManager.MoveGameObjectToScene(obj.gameObject, scene);
+                obj.gameObject.SetActive(true);
             }
         }
-        foreach (PlayerScript remove in toRemove)
+        foreach (RemoteObject remove in toRemove)
         {
-            initPlayerList.Remove(remove);
+            initObjectList.Remove(remove);
         }
     }
 }

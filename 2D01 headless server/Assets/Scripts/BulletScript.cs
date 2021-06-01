@@ -22,9 +22,9 @@ public class BulletScript : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.tag == "Ground") Destroy(gameObject);
-        else if (collision.tag == "Player" && collision.gameObject != owner.gameObject)
+        else if (collision.tag == "Player" || collision.tag == "Mob" && collision.gameObject != owner.gameObject)
         {
-            collision.GetComponent<PlayerScript>().Hit();
+            collision.GetComponent<RemoteObject>().Hit();
             Destroy(gameObject);
         }
     }
